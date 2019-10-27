@@ -3,7 +3,7 @@ from prettytable import PrettyTable
 
 import decision_trees.analysis as analysis
 import decision_trees.decision_tree as dt
-import decision_trees.data.monkdata as monkdata
+import decision_trees.dataset.monkdata as monkdata
 
 _training_sets = [
     monkdata.monk1,
