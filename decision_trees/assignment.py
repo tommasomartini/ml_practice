@@ -199,16 +199,28 @@ def assignment5():
     # print(d.check(t, m.monk1test))
 
 
+def assignment5p5():
+    print('Assignment 5.5')
+    dataset = _training_sets[0]
+    testset = _testing_sets[0]
+    decision_tree = dt.DecisionTree.train(dataset=dataset,
+                                          attributes=monkdata.attributes,
+                                          max_depth=2)
+    print(decision_tree)
+
+
 def main():
-    assignment1()
-    _separator()
-    assignment3()
-    _separator()
-    assignment4()
-    _separator()
-    assignment4p5()
-    _separator()
+    # assignment1()
+    # _separator()
+    # assignment3()
+    # _separator()
+    # assignment4()
+    # _separator()
+    # assignment4p5()
+    # _separator()
     assignment5()
+    _separator()
+    assignment5p5()
 
 
 if __name__ == '__main__':
