@@ -1,3 +1,6 @@
+import random
+
+
 class Sample:
     def __init__(self, positive, values, identity):
         self.positive = positive
@@ -20,6 +23,16 @@ attributes = (Attribute('A1', (1, 2, 3)),
               Attribute('A4', (1, 2, 3)),
               Attribute('A5', (1, 2, 3, 4)),
               Attribute('A6', (1, 2)))
+
+
+def partition(dataset, fraction, seed=0):
+    random.seed(seed)
+    dataset_copy = [sample for sample in dataset]
+    random.shuffle(dataset_copy)
+    size1 = int(len(dataset_copy) * fraction)
+    partition1 = dataset_copy[:size1]
+    partition2 = dataset_copy[size1:]
+    return partition1, partition2
 
 
 monk1 = (
