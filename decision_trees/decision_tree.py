@@ -62,6 +62,14 @@ class Node:
         return child.classify(sample)
 
     @property
+    def size(self):
+        if self.is_leaf:
+            return 0
+
+        subtree_size = 1 + sum([child.size for child in self.children.values()])
+        return subtree_size
+
+    @property
     def is_leaf(self):
         return self.category is not None
 
@@ -92,6 +100,10 @@ class DecisionTree:
 
     def __repr__(self):
         return str(self._root)
+
+    @property
+    def size(self):
+        return self._root.size
 
     @staticmethod
     def train(dataset, attributes, max_depth=None):

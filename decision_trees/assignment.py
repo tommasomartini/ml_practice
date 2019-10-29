@@ -197,7 +197,8 @@ def assignment5():
     pretty_table = PrettyTable()
     pretty_table.field_names = ['Dataset',
                                 'Accuracy training set (%)',
-                                'Accuracy test set (%)']
+                                'Accuracy test set (%)',
+                                'Size']
     for dataset_id, (training_set, testset) in enumerate(zip(_training_sets,
                                                              _testing_sets),
                                                          start=1):
@@ -207,7 +208,8 @@ def assignment5():
         test_acc = provided.check(decision_tree, testset)
         pretty_table.add_row([dataset_name,
                               '{:.1f}'.format(100 * train_acc),
-                              '{:.1f}'.format(100 * test_acc)])
+                              '{:.1f}'.format(100 * test_acc),
+                              decision_tree.size_subtree])
     print(pretty_table)
 
 
@@ -218,7 +220,8 @@ def assignment5p5():
     pretty_table = PrettyTable()
     pretty_table.field_names = ['Dataset',
                                 'Accuracy training set (%)',
-                                'Accuracy test set (%)']
+                                'Accuracy test set (%)',
+                                'Size']
     for dataset_id, (training_set, testset) in enumerate(zip(_training_sets,
                                                              _testing_sets),
                                                          start=1):
@@ -229,7 +232,8 @@ def assignment5p5():
         test_acc = dt.compute_accuracy(decision_tree, testset)
         pretty_table.add_row([dataset_name,
                               '{:.1f}'.format(100 * train_acc),
-                              '{:.1f}'.format(100 * test_acc)])
+                              '{:.1f}'.format(100 * test_acc),
+                              decision_tree.size])
     print(pretty_table)
 
 
