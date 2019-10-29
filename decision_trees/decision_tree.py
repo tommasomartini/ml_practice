@@ -120,6 +120,14 @@ def check(tree, testdata):
     return float(correct)/len(testdata)
 
 
+def compute_accuracy(decision_tree, dataset):
+    accuracy = sum([
+        decision_tree.classify(sample) == sample.positive
+        for sample in dataset
+    ]) / len(dataset)
+    return accuracy
+
+
 class Node:
 
     def __init__(self):
@@ -169,7 +177,7 @@ class DecisionTree:
         self._root = root
 
     def classify(self, sample):
-        category = self._root.claddify(sample)
+        category = self._root.classify(sample)
         return category
 
     def __repr__(self):

@@ -118,9 +118,9 @@ def assignment4p5():
             attribute_value,
             len(subset)))
         categories.append('Pos: {}\nNeg: {}'.format(
-        len([sample for sample in subset if sample.positive]),
-        len([sample for sample in subset if not sample.positive]),
-    ))
+            len([sample for sample in subset if sample.positive]),
+            len([sample for sample in subset if not sample.positive]),
+        ))
     pretty_table.field_names = field_names
     pretty_table.add_row(categories)
     print(pretty_table)
@@ -157,7 +157,7 @@ def assignment4p5():
             subset_idx, subset_split_attribute))
 
         categories_dict = \
-            decision_tree[split_attribute][attribute_value]\
+            decision_tree[split_attribute][attribute_value] \
                 .setdefault(subset_split_attribute, {})
         for attr_val in subset_split_attribute.values:
             subsubset = analysis.select(subset,
@@ -190,23 +190,45 @@ def assignment4p5():
 
 def assignment5():
     print('Assignment 5')
-    dataset = _training_sets[0]
-    testset = _testing_sets[0]
-    decision_tree = dt.build_tree(dataset, monkdata.attributes, maxdepth=2)
-    print(decision_tree)
-    print(dt.check(decision_tree, testset))
-    print(decision_tree.size_subtree)
-    # print(d.check(t, m.monk1test))
+    print('Given decision tree')
+
+    pretty_table = PrettyTable()
+    pretty_table.field_names = ['Dataset',
+                                'Accuracy training set (%)',
+                                'Accuracy test set (%)']
+    for dataset_id, (training_set, testset) in enumerate(zip(_training_sets,
+                                                             _testing_sets),
+                                                         start=1):
+        dataset_name = 'MONK-{}'.format(dataset_id)
+        decision_tree = dt.build_tree(training_set, monkdata.attributes)
+        train_acc = dt.check(decision_tree, training_set)
+        test_acc = dt.check(decision_tree, testset)
+        pretty_table.add_row([dataset_name,
+                              '{:.1f}'.format(100 * train_acc),
+                              '{:.1f}'.format(100 * test_acc)])
+    print(pretty_table)
 
 
 def assignment5p5():
     print('Assignment 5.5')
-    dataset = _training_sets[0]
-    testset = _testing_sets[0]
-    decision_tree = dt.DecisionTree.train(dataset=dataset,
-                                          attributes=monkdata.attributes,
-                                          max_depth=2)
-    print(decision_tree)
+    print('My decision tree implementation')
+
+    pretty_table = PrettyTable()
+    pretty_table.field_names = ['Dataset',
+                                'Accuracy training set (%)',
+                                'Accuracy test set (%)']
+    for dataset_id, (training_set, testset) in enumerate(zip(_training_sets,
+                                                             _testing_sets),
+                                                         start=1):
+        dataset_name = 'MONK-{}'.format(dataset_id)
+        decision_tree = dt.DecisionTree.train(dataset=training_set,
+                                              attributes=monkdata.attributes)
+        train_acc = dt.compute_accuracy(decision_tree, training_set)
+        test_acc = dt.compute_accuracy(decision_tree, testset)
+        pretty_table.add_row([dataset_name,
+                              '{:.1f}'.format(100 * train_acc),
+                              '{:.1f}'.format(100 * test_acc)])
+    print(pretty_table)
 
 
 def main():
