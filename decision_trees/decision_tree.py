@@ -185,7 +185,8 @@ class DecisionTree:
 
     @staticmethod
     def train(dataset, attributes, max_depth=None):
-        max_depth = max_depth or _MAX_DEPTH
+        if max_depth is None:
+            max_depth = _MAX_DEPTH
 
         if len(dataset) < 1:
             raise ValueError('Empty training set')
