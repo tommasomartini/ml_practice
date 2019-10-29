@@ -2,8 +2,10 @@ import numpy as np
 from prettytable import PrettyTable
 
 import decision_trees.analysis as analysis
-import decision_trees.decision_tree as dt
 import decision_trees.dataset.monkdata as monkdata
+import decision_trees.decision_tree as dt
+import decision_trees.provided.dtree as provided
+
 
 _training_sets = [
     monkdata.monk1,
@@ -190,7 +192,7 @@ def assignment4p5():
 
 def assignment5():
     print('Assignment 5')
-    print('Given decision tree')
+    print('Provided decision tree implementation')
 
     pretty_table = PrettyTable()
     pretty_table.field_names = ['Dataset',
@@ -200,9 +202,9 @@ def assignment5():
                                                              _testing_sets),
                                                          start=1):
         dataset_name = 'MONK-{}'.format(dataset_id)
-        decision_tree = dt.build_tree(training_set, monkdata.attributes)
-        train_acc = dt.check(decision_tree, training_set)
-        test_acc = dt.check(decision_tree, testset)
+        decision_tree = provided.buildTree(training_set, monkdata.attributes)
+        train_acc = provided.check(decision_tree, training_set)
+        test_acc = provided.check(decision_tree, testset)
         pretty_table.add_row([dataset_name,
                               '{:.1f}'.format(100 * train_acc),
                               '{:.1f}'.format(100 * test_acc)])
