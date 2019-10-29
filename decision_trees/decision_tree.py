@@ -41,10 +41,10 @@ def compute_accuracy(decision_tree, dataset):
 class Node:
 
     def __init__(self):
-        # If the node is a leaf, this is the only field to set.
+        # Category is the majority class at this point of the tree.
         self.category = None
 
-        # If the node is not a leaf, these are the only fields to set.
+        # If the node is a leaf, these fields should not be set.
         self.attribute = None
         self.children = {}
 
@@ -71,7 +71,7 @@ class Node:
 
     @property
     def is_leaf(self):
-        return self.category is not None
+        return len(self.children) == 0
 
     def __repr__(self):
         if self.is_leaf:
@@ -119,26 +119,20 @@ class DecisionTree:
         while len(stack) > 0:
             node, attributes_left, samples_left, node_depth = stack.pop()
 
+            # Set the default category for this node.
+            node.category = analysis.most_common_category(samples_left)
+
             if node_depth == max_depth:
-                # This node cannot have children: make it a leaf by assigning
-                # the most common category.
-                node.category = analysis.most_common_category(samples_left)
+                # This node cannot have children.
                 continue
 
             # If all the left samples belong to the same category, there is
             # no need to split: make this node a leaf.
-            if all_positive(samples_left):
-                node.category = True
-                continue
-
-            if all_negative(samples_left):
-                node.category = False
+            if all_positive(samples_left) or all_negative(samples_left):
                 continue
 
             if not attributes_left:
-                # There are no more attributes to split by. Make this node
-                # a leaf by using the most common category.
-                node.category = analysis.most_common_category(samples_left)
+                # There are no more attributes to split by.
                 continue
 
             # If you get to this point, this node will have children: split
@@ -168,7 +162,7 @@ class DecisionTree:
                 if len(child_samples) == 0:
                     # No training samples left. Pick the category with the
                     # biggest representation at the current node.
-                    child.category = analysis.most_common_category(samples_left)
+                    child.category = node.category
 
                     # Do not put it in the stack.
                     continue
