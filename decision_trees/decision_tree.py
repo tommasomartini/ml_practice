@@ -1,4 +1,5 @@
 import decision_trees.analysis as analysis
+import copy
 
 
 # Maximum depth of the decision tree.
@@ -89,6 +90,28 @@ class Node:
         return string_repr
 
 
+def _pruned_subtrees(subtree_root):
+    if subtree_root.is_leaf:
+        # Nothing to prune.
+        return []
+
+    # The trivial way to prune this subtree is by removing all
+    # the children from the root.
+    leaf_root = Node()
+    leaf_root.category = subtree_root.category
+    pruned_subtrees = [leaf_root]
+
+    # All the pruned subtrees are the given by all the possible ways this
+    # node's children can be pruned.
+    for attribute_value, child in subtree_root.children.items():
+        for alternative_child in _pruned_subtrees(child):
+            alternative_root = copy.copy(subtree_root)
+            alternative_root.children[attribute_value] = alternative_child
+            pruned_subtrees.append(alternative_root)
+
+    return pruned_subtrees
+
+
 class DecisionTree:
 
     def __init__(self, root):
@@ -98,8 +121,37 @@ class DecisionTree:
         category = self._root.classify(sample)
         return category
 
+    def prune(self, dataset):
+        max_accuracy = compute_accuracy(self, dataset)
+
+        pruned_accuracy = max_accuracy
+        pruned_tree = self
+
+        while True:
+            accuracy, tree = max(
+                [
+                    (compute_accuracy(p_tree, dataset), p_tree)
+                    for p_tree in _pruned_subtrees(pruned_tree.root)
+                ],
+                key=lambda x: x[0]
+            )
+
+            if accuracy < pruned_accuracy:
+                # All the pruned subtree perform worse than the previous ones.
+                break
+
+            # Found a new best pruned tree.
+            pruned_accuracy = accuracy
+            pruned_tree = tree
+
+        return pruned_tree
+
     def __repr__(self):
         return str(self._root)
+
+    @property
+    def root(self):
+        return self._root
 
     @property
     def size(self):

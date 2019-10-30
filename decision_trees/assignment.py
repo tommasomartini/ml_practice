@@ -1,3 +1,5 @@
+import copy
+
 import numpy as np
 from prettytable import PrettyTable
 
@@ -5,7 +7,6 @@ import decision_trees.analysis as analysis
 import decision_trees.dataset.monkdata as monkdata
 import decision_trees.decision_tree as dt
 import decision_trees.provided.dtree as provided
-
 
 _training_sets = [
     monkdata.monk1,
@@ -237,6 +238,100 @@ def assignment5p5():
     print(pretty_table)
 
 
+def assignment7():
+    print('Assignment 7')
+    print('Use the provided routines to prune the tree.')
+
+    testset = _testing_sets[0]
+    training_set = _training_sets[0]
+    training_set, validation_set = monkdata.partition(training_set,
+                                                      fraction=0.5,
+                                                      seed=0)
+    decision_tree = provided.buildTree(training_set, monkdata.attributes)
+
+    print()
+
+    print('Full tree')
+    print(' Size: {}'.format(decision_tree.size_subtree))
+    print(' Validation set: '
+          '{:.1f}%'.format(100 * provided.check(decision_tree, validation_set)))
+    print(' Test set: '
+          '{:.1f}%'.format(100 * provided.check(decision_tree, testset)))
+
+    print()
+
+    pruned_accuracy = provided.check(decision_tree, validation_set)
+    pruned_tree = decision_tree
+
+    pruning_round = 0
+    print('  After {} pruning rounds:\n'
+          '    Validation set accuracy: {:.1f}%'.format(pruning_round,
+                                                        100 * pruned_accuracy))
+    while True:
+        max_accuracy, candidate_tree = max(
+            [
+                (provided.check(p_tree, validation_set), p_tree)
+                for p_tree in provided.allPruned(pruned_tree)
+            ],
+            key=lambda x: x[0]
+        )
+
+        pruning_round += 1
+        print('  After {} pruning rounds:\n'
+              '    Validation set accuracy: {:.1f}%'.format(pruning_round,
+                                                            100 * max_accuracy))
+
+        if max_accuracy < pruned_accuracy:
+            # All the pruned subtree perform worse than the previous ones.
+            break
+
+        # Found a new best pruned tree.
+        pruned_accuracy = max_accuracy
+        pruned_tree = candidate_tree
+
+    print()
+
+    print('Pruned tree')
+    print(' Size: {}'.format(pruned_tree.size_subtree))
+    print(' Validation set: '
+          '{:.1f}%'.format(100 * provided.check(pruned_tree, validation_set)))
+    print(' Test set: '
+          '{:.1f}%'.format(100 * provided.check(pruned_tree, testset)))
+
+
+def assignment7p5():
+    print('Assignment 7.5')
+    print('Use my implementation to prune the tree.')
+
+    testset = _testing_sets[0]
+    training_set = _training_sets[0]
+    training_set, validation_set = monkdata.partition(training_set,
+                                                      fraction=0.5,
+                                                      seed=0)
+    decision_tree = dt.DecisionTree.train(training_set, monkdata.attributes)
+
+    print()
+
+    print('Full tree')
+    print(' Size: {}'.format(decision_tree.size))
+    print(' Validation set: '
+          '{:.1f}%'.format(100 * dt.compute_accuracy(decision_tree,
+                                                     validation_set)))
+    print(' Test set: '
+          '{:.1f}%'.format(100 * dt.compute_accuracy(decision_tree, testset)))
+    print()
+
+    pruned_tree = decision_tree.prune(validation_set)
+
+    print('Pruned tree')
+    print(' Size: {}'.format(pruned_tree.size))
+    print(' Validation set: '
+          '{:.1f}%'.format(100 * dt.compute_accuracy(pruned_tree,
+                                                     validation_set)))
+    print(' Test set: '
+          '{:.1f}%'.format(100 * dt.compute_accuracy(pruned_tree, testset)))
+
+
 def main():
     # assignment1()
     # _separator()
@@ -246,9 +341,13 @@ def main():
     # _separator()
     # assignment4p5()
     # _separator()
-    assignment5()
+    # assignment5()
+    # _separator()
+    # assignment5p5()
+    # _separator()
+    assignment7()
     _separator()
-    assignment5p5()
+    assignment7p5()
 
 
 if __name__ == '__main__':
