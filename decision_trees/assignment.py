@@ -422,6 +422,7 @@ def assignment7p2():
         #                 alpha=0.5)
 
         ax.set_title(dataset_name)
+        ax.set_xlabel('Train-val fraction')
         ax.set_ylabel('Test accuracy')
         ax.legend(loc='lower right')
 
@@ -433,7 +434,6 @@ def assignment7p2():
         right_ax.grid(False)
         right_ax.set_ylabel('Average tree size')
 
-    plt.xlabel('Train-val fraction')
     fig.tight_layout()
     plt.show()
     plt.close()
