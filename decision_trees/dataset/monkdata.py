@@ -9,12 +9,22 @@ class Sample:
 
 
 class Attribute:
+    """Objects of this class will be used as dict keys, therefore we need to
+    implement the `__hash__` and `__eq__` functions.
+    """
+
     def __init__(self, name, values):
         self.name = name
         self.values = values
 
     def __repr__(self):
         return self.name
+
+    def __hash__(self):
+        return hash(self.name)
+
+    def __eq__(self, other):
+        return self.name == other.name
 
 
 attributes = (Attribute('A1', (1, 2, 3)),
