@@ -1,4 +1,4 @@
-import copy
+import logging
 
 import numpy as np
 from prettytable import PrettyTable
@@ -7,6 +7,9 @@ import decision_trees.analysis as analysis
 import decision_trees.dataset.monkdata as monkdata
 import decision_trees.decision_tree as dt
 import decision_trees.provided.dtree as provided
+
+logging.basicConfig(format='[%(levelname)s] %(message)s',
+                    level=logging.DEBUG)
 
 _training_sets = [
     monkdata.monk1,
@@ -238,8 +241,8 @@ def assignment5p5():
     print(pretty_table)
 
 
-def assignment7():
-    print('Assignment 7')
+def assignment7p0():
+    print('Assignment 7.0')
     print('Use the provided routines to prune the tree.')
 
     testset = _testing_sets[0]
@@ -263,33 +266,32 @@ def assignment7():
     pruned_accuracy = provided.check(decision_tree, validation_set)
     pruned_tree = decision_tree
 
-    pruning_round = 0
-    print('  After {} pruning rounds:\n'
-          '    Validation set accuracy: {:.1f}%'.format(pruning_round,
-                                                        100 * pruned_accuracy))
+    logging.debug('  Initial tree: size={:2d}, '
+                  'accuracy={:5.1f}, {}'.format(pruned_tree.size_subtree,
+                                                100 * pruned_accuracy,
+                                                pruned_tree))
+
     while True:
-        max_accuracy, candidate_tree = max(
+        candidate_accuracy, candidate_tree = max(
             [
                 (provided.check(p_tree, validation_set), p_tree)
                 for p_tree in provided.allPruned(pruned_tree)
             ],
-            key=lambda x: x[0]
+            key=lambda x: (x[0], -x[1].size_subtree)
         )
 
-        pruning_round += 1
-        print('  After {} pruning rounds:\n'
-              '    Validation set accuracy: {:.1f}%'.format(pruning_round,
-                                                            100 * max_accuracy))
+        logging.debug('Candidate tree: size={:2d}, accuracy={:5.1f}, {}'
+                      .format(candidate_tree.size_subtree,
+                              100 * candidate_accuracy,
+                              candidate_tree))
 
-        if max_accuracy < pruned_accuracy:
+        if candidate_accuracy < pruned_accuracy:
             # All the pruned subtree perform worse than the previous ones.
             break
 
         # Found a new best pruned tree.
-        pruned_accuracy = max_accuracy
+        pruned_accuracy = candidate_accuracy
         pruned_tree = candidate_tree
-
-    print()
 
     print('Pruned tree')
     print(' Size: {}'.format(pruned_tree.size_subtree))
@@ -299,8 +301,8 @@ def assignment7():
           '{:.1f}%'.format(100 * provided.check(pruned_tree, testset)))
 
 
-def assignment7p5():
-    print('Assignment 7.5')
+def assignment7p1():
+    print('Assignment 7.1')
     print('Use my implementation to prune the tree.')
 
     testset = _testing_sets[0]
@@ -345,9 +347,9 @@ def main():
     # _separator()
     # assignment5p5()
     # _separator()
-    assignment7()
+    assignment7p0()
     _separator()
-    assignment7p5()
+    assignment7p1()
 
 
 if __name__ == '__main__':
