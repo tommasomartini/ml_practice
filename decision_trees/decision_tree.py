@@ -1,6 +1,7 @@
-import decision_trees.analysis as analysis
 import copy
+import logging
 
+import decision_trees.analysis as analysis
 
 # Maximum depth of the decision tree.
 _MAX_DEPTH = 1000000
@@ -101,11 +102,11 @@ def _pruned_subtrees(subtree_root):
     leaf_root.category = subtree_root.category
     pruned_subtrees = [leaf_root]
 
-    # All the pruned subtrees are the given by all the possible ways this
+    # All the pruned subtrees are given by all the possible ways this
     # node's children can be pruned.
     for attribute_value, child in subtree_root.children.items():
         for alternative_child in _pruned_subtrees(child):
-            alternative_root = copy.copy(subtree_root)
+            alternative_root = copy.deepcopy(subtree_root)
             alternative_root.children[attribute_value] = alternative_child
             pruned_subtrees.append(alternative_root)
 
@@ -122,29 +123,39 @@ class DecisionTree:
         return category
 
     def prune(self, dataset):
-        max_accuracy = compute_accuracy(self, dataset)
+        accuracy = compute_accuracy(self, dataset)
+        pruned_tree_root = self.root
 
-        pruned_accuracy = max_accuracy
-        pruned_tree = self
+        logging.debug('  Initial tree: size={:2d}, '
+                      'accuracy={:5.1f}, {}'.format(pruned_tree_root.size,
+                                                    100 * accuracy,
+                                                    pruned_tree_root))
 
         while True:
-            accuracy, tree = max(
+            # The candidate tree is the one with highest accuracy and smallest
+            # size, if several pruned trees have the same accuracy.
+            candidate_accuracy, candidate_tree = max(
                 [
                     (compute_accuracy(p_tree, dataset), p_tree)
-                    for p_tree in _pruned_subtrees(pruned_tree.root)
+                    for p_tree in _pruned_subtrees(pruned_tree_root)
                 ],
-                key=lambda x: x[0]
+                key=lambda x: (x[0], -x[1].size)
             )
 
-            if accuracy < pruned_accuracy:
-                # All the pruned subtree perform worse than the previous ones.
+            logging.debug('Candidate tree: size={:2d}, accuracy={:5.1f}, {}'
+                          .format(candidate_tree.size,
+                                  100 * candidate_accuracy,
+                                  candidate_tree))
+
+            if candidate_accuracy < accuracy:
+                # All the pruned subtrees perform worse than the previous ones.
                 break
 
             # Found a new best pruned tree.
-            pruned_accuracy = accuracy
-            pruned_tree = tree
+            accuracy = candidate_accuracy
+            pruned_tree_root = candidate_tree
 
-        return pruned_tree
+        return pruned_tree_root
 
     def __repr__(self):
         return str(self._root)
