@@ -1,7 +1,10 @@
 import logging
 
+import matplotlib.pyplot as plt
 import numpy as np
+import seaborn as sns
 from prettytable import PrettyTable
+from tqdm import tqdm
 
 import decision_trees.analysis as analysis
 import decision_trees.dataset.monkdata as monkdata
@@ -9,7 +12,7 @@ import decision_trees.decision_tree as dt
 import decision_trees.provided.dtree as provided
 
 logging.basicConfig(format='[%(levelname)s] %(message)s',
-                    level=logging.DEBUG)
+                    level=logging.ERROR)
 
 _training_sets = [
     monkdata.monk1,
@@ -334,6 +337,108 @@ def assignment7p1():
           '{:.1f}%'.format(100 * dt.compute_accuracy(pruned_tree, testset)))
 
 
+def assignment7p2():
+    print('Assignment 7.2')
+    print('Run my implementation to prune the tree on all the datasets.')
+    print()
+
+    # How many times to repeat each experiment.
+    num_repetitions = 100
+
+    # All the train vs validation splits to test.
+    train_val_fractions = np.linspace(0.1, 0.9, 9)
+
+    sns.set()
+    fig, axs = plt.subplots(len(_training_sets), 1)
+
+    for dataset_id in range(len(_training_sets)):
+        dataset_name = 'MONK-{}'.format(dataset_id + 1)
+
+        testset = _testing_sets[dataset_id]
+        training_set = _training_sets[dataset_id]
+
+        accuracies = []
+        tree_sizes = []
+        for fraction in train_val_fractions:
+            fraction_accuracies = []
+            fraction_tree_sizes = []
+            for rep_idx in tqdm(range(num_repetitions),
+                                desc='[{}] Testing train-val split: '
+                                     '{}'.format(dataset_name, fraction)):
+
+                train_set, val_set = \
+                    monkdata.partition(training_set, fraction, seed=rep_idx)
+                decision_tree = dt.DecisionTree.train(train_set,
+                                                      monkdata.attributes)
+                pruned_tree = decision_tree.prune(val_set)
+                fraction_accuracies.append(dt.compute_accuracy(pruned_tree,
+                                                               testset))
+                fraction_tree_sizes.append(pruned_tree.size)
+
+            mean_accuracy = np.mean(fraction_accuracies)
+            std_accuracy = np.std(fraction_accuracies)
+            min_accuracy = np.min(fraction_accuracies)
+            p25_accuracy = np.percentile(fraction_accuracies, 25)
+            median_accuracy = np.median(fraction_accuracies)
+            p75_accuracy = np.percentile(fraction_accuracies, 75)
+            max_accuracy = np.max(fraction_accuracies)
+
+            accuracies.append((
+                mean_accuracy,
+                std_accuracy,
+                min_accuracy,
+                p25_accuracy,
+                median_accuracy,
+                p75_accuracy,
+                max_accuracy
+            ))
+            tree_sizes.append(np.mean(fraction_tree_sizes))
+
+        ax = axs[dataset_id]
+        means, stds, mins, p25s, medians, p75s, maxs = \
+            map(np.array, zip(*accuracies))
+
+        color='b'
+        ax.plot(train_val_fractions, medians, color=color, label='Median')
+        ax.fill_between(train_val_fractions,
+                        mins,
+                        maxs,
+                        color=color,
+                        label='All',
+                        alpha=0.2)
+        ax.fill_between(train_val_fractions,
+                        p25s,
+                        p75s,
+                        color=color,
+                        label='Interquartile range',
+                        alpha=0.5)
+
+        ax.plot(train_val_fractions, means, color=color, label='Mean',
+                linestyle='--')
+        # ax.fill_between(train_val_fractions,
+        #                 means - stds,
+        #                 means + stds,
+        #                 label='+- standard deviation',
+        #                 alpha=0.5)
+
+        ax.set_title(dataset_name)
+        ax.set_ylabel('Test accuracy')
+        ax.legend(loc='lower right')
+
+        # Instantiate the right Y axis for the tree size.
+        right_ax = ax.twinx()
+        color = 'g'
+        right_ax.plot(train_val_fractions, tree_sizes, color=color,
+                      label='Tree size')
+        right_ax.grid(False)
+        right_ax.set_ylabel('Average tree size')
+
+    plt.xlabel('Train-val fraction')
+    fig.tight_layout()
+    plt.show()
+    plt.close()
+
+
 def main():
     # assignment1()
     # _separator()
@@ -347,9 +452,11 @@ def main():
     # _separator()
     # assignment5p5()
     # _separator()
-    assignment7p0()
-    _separator()
-    assignment7p1()
+    # assignment7p0()
+    # _separator()
+    # assignment7p1()
+    # _separator()
+    assignment7p2()
 
 
 if __name__ == '__main__':

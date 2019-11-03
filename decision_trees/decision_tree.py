@@ -134,13 +134,17 @@ class DecisionTree:
         while True:
             # The candidate tree is the one with highest accuracy and smallest
             # size, if several pruned trees have the same accuracy.
-            candidate_accuracy, candidate_tree = max(
-                [
+            accuracies_trees = [
                     (compute_accuracy(p_tree, dataset), p_tree)
                     for p_tree in _pruned_subtrees(pruned_tree_root)
-                ],
-                key=lambda x: (x[0], -x[1].size)
-            )
+                ]
+            if len(accuracies_trees) == 0:
+                # The current `pruned_tree_root` is made by a single leaf and
+                # cannot be pruned.
+                break
+
+            candidate_accuracy, candidate_tree = \
+                max(accuracies_trees, key=lambda x: (x[0], -x[1].size))
 
             logging.debug('Candidate tree: size={:2d}, accuracy={:5.1f}, {}'
                           .format(candidate_tree.size,
