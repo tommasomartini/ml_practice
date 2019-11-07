@@ -27,11 +27,12 @@ def get_dataset(size, fraction=0.5, seed=0):
     num_negative_samples = size - num_positive_samples
 
     # Positive cluster #1.
-    size_positive_cluster = int(num_positive_samples / 2)
+    # size_positive_cluster = int(num_positive_samples / 2)
+    size_positive_cluster = num_positive_samples
     pos_mean1 = [-1.5, 0.5]
     pos_cov1 = np.array([
-        [1., 0.],
-        [0., 1.],
+        [0.1, 0.],
+        [0., 0.1],
     ])
     positive_samples_cluster1 = _mvn(pos_mean1,
                                      pos_cov1,
@@ -40,15 +41,16 @@ def get_dataset(size, fraction=0.5, seed=0):
     # Positive cluster #2.
     pos_mean2 = [1.5, 0.5]
     pos_cov2 = np.array([
-        [1., 0.],
-        [0., 1.],
+        [0.1, 0.],
+        [0., 0.1],
     ])
     positive_samples_cluster2 = _mvn(pos_mean2,
                                      pos_cov2,
                                      size=size_positive_cluster)
 
-    positive_samples = np.r_[positive_samples_cluster1,
-                             positive_samples_cluster2]
+    # positive_samples = np.r_[positive_samples_cluster1,
+    #                          positive_samples_cluster2]
+    positive_samples = positive_samples_cluster1
 
     positive_samples = np.column_stack([positive_samples,
                                         np.ones(num_positive_samples)])
@@ -56,8 +58,8 @@ def get_dataset(size, fraction=0.5, seed=0):
     # Negative cluster.
     neg_mean = [0.0, -0.5]
     neg_cov = np.array([
-        [0.5, 0.],
-        [0., 0.5],
+        [0.05, 0.],
+        [0., 0.05],
     ])
     negative_samples = _mvn(neg_mean, neg_cov, size=num_negative_samples)
     negative_samples = np.column_stack([negative_samples,
