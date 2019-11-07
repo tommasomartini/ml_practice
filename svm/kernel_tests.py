@@ -50,8 +50,20 @@ class KernelTests(unittest.TestCase):
 
         expected_output = np.array([0.15123976, 0.211072088])
 
-        polynomial_kernel = kernels.get_radial_basis_function_kernel(sigma=3)
-        output = polynomial_kernel(v1, v2)
+        rbf_kernel = kernels.get_radial_basis_function_kernel(sigma=3)
+        output = rbf_kernel(v1, v2)
+
+        np.testing.assert_array_almost_equal(expected_output, output)
+
+    def test_sigmoid_kernel(self):
+        v1 = np.array([1, 2, 3])
+        v2 = np.array([[3, 1, -2],
+                       [-2, 0, 0]])
+
+        expected_output = np.array([-0.291312612, -0.379948962])
+
+        sigmoid_kernel = kernels.get_sigmoid_kernel(k=0.1, delta=0.2)
+        output = sigmoid_kernel(v1, v2)
 
         np.testing.assert_array_almost_equal(expected_output, output)
 

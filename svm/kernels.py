@@ -29,3 +29,12 @@ def get_radial_basis_function_kernel(sigma):
         return res
 
     return _ker
+
+
+def get_sigmoid_kernel(k, delta):
+    def _ker(v1, v2):
+        v1, v2 = np.atleast_2d(v1, v2)
+        res = np.squeeze(np.tanh(k * v1 @ v2.T - delta))
+        return res
+
+    return _ker
