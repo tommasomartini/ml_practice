@@ -19,6 +19,30 @@ class KernelTests(unittest.TestCase):
 
         np.testing.assert_array_almost_equal(expected_output, output)
 
+    def test_polynomial_kernel_p_2(self):
+        v1 = np.array([1, 2, 0])
+        v2 = np.array([[-1, -1, 10],
+                       [3, 4, 10]])
+
+        expected_output = np.array([4, 144])
+
+        polynomial_kernel = kernels.get_polynomial_kernel(p=2)
+        output = polynomial_kernel(v1, v2)
+
+        np.testing.assert_array_almost_equal(expected_output, output)
+
+    def test_polynomial_kernel_p_3(self):
+        v1 = np.array([1, 2, 0])
+        v2 = np.array([[-1, -1, 10],
+                       [3, 4, 10]])
+
+        expected_output = np.array([-8, 12 ** 3])
+
+        polynomial_kernel = kernels.get_polynomial_kernel(p=3)
+        output = polynomial_kernel(v1, v2)
+
+        np.testing.assert_array_almost_equal(expected_output, output)
+
 
 if __name__ == '__main__':
     unittest.main()
