@@ -17,3 +17,15 @@ def get_polynomial_kernel(p):
         return res
 
     return _ker
+
+
+def get_radial_basis_function_kernel(sigma):
+    def _ker(v1, v2):
+        v1, v2 = np.atleast_2d(v1, v2)
+        aux1 = np.linalg.norm(v1 - v2, axis=1) ** 2
+        aux2 = - aux1 / sigma ** 2
+        aux3 = np.exp(aux2)
+        res = np.squeeze(aux3)
+        return res
+
+    return _ker
