@@ -82,8 +82,11 @@ def main():
              matrix(vector_q),
              matrix(matrix_G),
              matrix(vector_h))
-    alphas = np.squeeze(res['x'])
 
+    if res['status'] != 'optimal':
+        raise ValueError('Could not solve the problem')
+
+    alphas = np.squeeze(res['x'])
     nonzero_alphas_indices = np.where(np.abs(alphas) > _eps)[0]
     nonzero_alphas = alphas[nonzero_alphas_indices]
     support_vectors = samples[nonzero_alphas_indices]
