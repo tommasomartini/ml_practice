@@ -1,5 +1,3 @@
-import logging
-
 import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
@@ -12,12 +10,14 @@ import svm.plotting as plotting
 
 sns.set()
 _eps = 1e-5
-logging.basicConfig(format='[%(levelname)s] %(message)s', level=logging.ERROR)
 
 
 _kernel_func = kernels.get_linear_kernel()
 _training_set = ds.get_dataset(size=20, fraction=0.5, seed=0)
 _test_set = ds.get_dataset(size=20, fraction=0.5, seed=1)
+
+# Lower C equals larger slack.
+_slack_C = 5.
 
 
 def _get_indicator_function(support_vectors,
@@ -97,6 +97,11 @@ def main():
     vector_q = -np.ones(N)
     vector_h = np.zeros(N)
     matrix_G = -np.eye(N)
+
+    if _slack_C:
+        # Make use of the slack variables.
+        vector_h = np.r_[vector_h, _slack_C * np.ones(N)]
+        matrix_G = np.r_[matrix_G, np.eye(N)]
 
     np.testing.assert_array_almost_equal(matrix_P, matrix_P.T)
 
