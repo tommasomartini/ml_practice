@@ -45,12 +45,13 @@ def plot_margins(ax, indicator_function, xlims, ylims, grid_size=None):
     zz = indicator_function(np.c_[xx.ravel(), yy.ravel()])
     grid = zz.reshape(xx.shape)
 
-    ax.contour(xrange,
-               yrange,
-               grid,
-               levels=(-1, 0, 1),
-               colors=('g', 'k', 'b'),
-               linestyles=('dashed', 'solid', 'dashed'))
+    contours = ax.contour(xrange,
+                          yrange,
+                          grid,
+                          levels=(-1, 0, 1),
+                          colors=('g', 'k', 'b'),
+                          linestyles=('dashed', 'solid', 'dashed'))
+    ax.clabel(contours, fontsize=10)
 
 
 def plot_data_points_and_margin(ax,
