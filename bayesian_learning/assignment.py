@@ -1,6 +1,11 @@
+import matplotlib.pyplot as plt
 import numpy as np
+import seaborn as sns
 from sklearn.datasets.samples_generator import make_blobs
+
 import bayesian_learning.plotting as plotting
+
+sns.set()
 
 
 def _covariance(samples):
@@ -86,7 +91,18 @@ def assignment1():
                                  n_features=2,
                                  random_state=0)
     mu, sigma = maximum_likelihood_estimator(samples, labels, naive=False)
-    plotting.plotGaussian(samples, labels, mu, sigma)
+
+    plt.figure()
+    ax = plt.gca()
+    plotting.plot_gaussian(ax=ax,
+                           samples=samples,
+                           labels=labels,
+                           mu=mu,
+                           sigma=sigma)
+    plt.title('Assignment 1')
+    ax.legend()
+    plt.show()
+    plt.close()
 
 
 def main():

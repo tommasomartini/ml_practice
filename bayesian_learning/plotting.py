@@ -46,77 +46,29 @@ def plot_gaussian_distribution_ellipse(ax, mu, sigma, **kwargs):
                       height=height,
                       angle=theta_deg,
                       **kwargs)
-    ellipse.set_alpha(0.25)
     ax.add_artist(ellipse)
 
 
-def plot_cov_ellipse(cov, pos, nstd=2, ax=None, **kwargs):
-    """
-    Plots an `nstd` sigma error ellipse based on the specified covariance
-    matrix (`cov`). Additional keyword arguments are passed on to the
-    ellipse patch artist.
+def plot_gaussian(ax, samples, labels, mu, sigma):
+    classes = sorted(list(set(labels)))
+    cmap = cm.get_cmap('jet')
+    for idx, class_id in enumerate(classes):
+        class_color = cmap(idx / (len(classes) - 1))
 
-    Parameters
-    ----------
-        cov : The 2x2 covariance matrix to base the ellipse on
-        pos : The location of the center of the ellipse. Expects a 2-element
-            sequence of [x0, y0].
-        nstd : The radius of the ellipse in numbers of standard deviations.
-            Defaults to 2 standard deviations.
-        ax : The axis that the ellipse will be plotted on. Defaults to the
-            current axis.
-        Additional keyword arguments are pass on to the ellipse patch.
+        # Draw the samples.
+        class_indices = np.where(labels == class_id)[0]
+        class_samples = samples[class_indices]
+        plt.scatter(class_samples[:, 0],
+                    class_samples[:, 1],
+                    color=class_color,
+                    marker='o',
+                    label='Class {}'.format(class_id))
 
-    Returns
-    -------
-        A matplotlib ellipse artist
-    """
-    def eigsorted(cov):
-        vals, vecs = np.linalg.eigh(cov)
-        order = vals.argsort()[::-1]
-        return vals[order], vecs[:,order]
-
-    if ax is None:
-        ax = plt.gca()
-
-    vals, vecs = eigsorted(cov)
-    theta = np.degrees(np.arctan2(*vecs[:,0][::-1]))
-
-    # Width and height are "full" widths, not radius
-    width, height = 2 * nstd * np.sqrt(vals)
-    ellip = Ellipse(xy=pos, width=width, height=height, angle=theta, **kwargs)
-    ellip.set_alpha(0.25)
-
-    ax.add_artist(ellip)
-    return ellip
-
-
-def plotGaussian(X,y,mu,sigma):
-    labels = np.unique(y)
-    Ncolors = len(labels)
-    xx = np.arange(Ncolors)
-    ys = [i+xx+(i*xx)**2 for i in range(Ncolors)]
-    colors = cm.rainbow(np.linspace(0, 1, len(ys)))
-    c = 1.0
-    for label in labels:
-        classIdx = y==label
-        Xclass = X[classIdx,:]
-        # plot_gaussian_distribution_ellipse(ax=plt.gca(),
-        #                                    mu=mu[label],
-        #                                    sigma=sigma[label])
-        plot_cov_ellipse(sigma[label], mu[label])
-        plt.scatter(Xclass[:,0],Xclass[:,1],linewidths=1,s=25,color=colors[label],marker='o',alpha=0.75)
-        c += 1.
-
-    plt.show()
-
-
-def _tryout():
-    plt.figure()
-
-    plt.show()
-    plt.close()
-
-
-if __name__ == '__main__':
-    _tryout()
+        # Draw the estimated Gaussian contour.
+        class_mu = mu[idx]
+        class_sigma = sigma[idx]
+        plot_gaussian_distribution_ellipse(ax=ax,
+                                           mu=class_mu,
+                                           sigma=class_sigma,
+                                           color=class_color,
+                                           alpha=0.3)
