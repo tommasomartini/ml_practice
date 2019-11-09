@@ -27,8 +27,7 @@ def get_dataset(size, fraction=0.5, seed=0):
     num_negative_samples = size - num_positive_samples
 
     # Positive cluster #1.
-    # size_positive_cluster = int(num_positive_samples / 2)
-    size_positive_cluster = num_positive_samples
+    size_positive_cluster = int(num_positive_samples / 2)
     pos_mean1 = [-1.5, 0.5]
     pos_cov1 = np.array([
         [0.1, 0.],
@@ -48,9 +47,8 @@ def get_dataset(size, fraction=0.5, seed=0):
                                      pos_cov2,
                                      size=size_positive_cluster)
 
-    # positive_samples = np.r_[positive_samples_cluster1,
-    #                          positive_samples_cluster2]
-    positive_samples = positive_samples_cluster1
+    positive_samples = np.r_[positive_samples_cluster1,
+                             positive_samples_cluster2]
 
     positive_samples = np.column_stack([positive_samples,
                                         np.ones(num_positive_samples)])
