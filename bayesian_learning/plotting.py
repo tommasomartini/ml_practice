@@ -1,4 +1,3 @@
-import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib import cm
 from matplotlib.patches import Ellipse
@@ -59,11 +58,11 @@ def plot_gaussian(ax, samples, labels, mu, sigma):
         # Draw the samples.
         class_indices = np.where(labels == class_id)[0]
         class_samples = samples[class_indices]
-        plt.scatter(class_samples[:, 0],
-                    class_samples[:, 1],
-                    color=class_color,
-                    marker='o',
-                    label='Class {}'.format(class_id))
+        ax.scatter(class_samples[:, 0],
+                   class_samples[:, 1],
+                   color=class_color,
+                   marker='o',
+                   label='Class {}'.format(class_id))
 
         # Draw the estimated Gaussian contour.
         class_mu = mu[idx]
