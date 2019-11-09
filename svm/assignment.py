@@ -7,126 +7,104 @@ from cvxopt.base import matrix
 from cvxopt.solvers import qp
 
 import svm.dataset as ds
+import svm.kernels as kernels
+import svm.plotting as plotting
 
 sns.set()
 _eps = 1e-5
-
-logging.basicConfig(format='[%(levelname)s] %(message)s',
-                    level=logging.ERROR)
+logging.basicConfig(format='[%(levelname)s] %(message)s', level=logging.ERROR)
 
 
-def _get_indicator_function(alphas, support_vectors, support_labels):
-    def _indicator(point):
+_kernel_func = kernels.get_linear_kernel()
 
-        # Linear.
-        # v1 = np.dot(point[np.newaxis, :], support_vectors.T) + 1
 
-        # Polynomial.
-        v1 = np.power(np.dot(point[np.newaxis, :], support_vectors.T) + 1, 1)
+def _get_indicator_function(support_vectors,
+                            support_labels,
+                            alphas,
+                            kernel_func):
+    """Returns an indicator function to classify points.
 
-        v2 = alphas * support_labels * v1
-        res = np.sum(v2)
+    Args:
+        support_vectors: Shape=(K, D) with K number of support vectors and D
+            their dimensionality.
+        support_labels: Shape=(K,) labels for each of the K support vectors.
+        alphas: Shape=(K,) non-zero coefficients for each of
+            the K support vectors.
+        kernel_func: Kernel function (See the kernels module for
+            its function signature).
+
+    Returns:
+        An indicator function.
+    """
+    def _indicator(*features):
+        """The classification of the input samples is given by the sign of the
+        returned value.
+
+        Args:
+            *features: Each feature can be either a scalar or an array-like
+                with shape=(N,) containing the corresponding feature for each
+                of the N samples.
+
+        Returns:
+            A scalar or an array-like with shape=(N,). The sample
+            classifications corresponds to the sign of the returned value.
+        """
+        points = np.column_stack(features)  # (N, D)
+
+        v1 = kernel_func(points, support_vectors)   # (N, K)
+
+        K = len(support_labels)
+        alphas_r = alphas.reshape((-1, K))
+        support_labels_r = support_labels.reshape((-1, K))
+
+        v2 = alphas_r * support_labels_r * v1   # (N, K)
+        res = np.sum(v2, axis=1)    # (N,)
         return res
 
     return _indicator
 
 
-def print_dataset(dataset):
-    pos_samples = dataset[np.where(dataset[:, 2] == 1)]
-    neg_samples = dataset[np.where(dataset[:, 2] == -1)]
-
-    assert len(pos_samples) + len(neg_samples) == len(dataset)
-
-    # Plot the dataset.
-    plt.figure()
-
-    plt.scatter(pos_samples[:, 0], pos_samples[:, 1],
-               color='b', marker='o', label='Positive')
-    plt.scatter(neg_samples[:, 0], neg_samples[:, 1],
-                color='g', marker='x', label='Negative')
-
-    plt.gca().set_aspect('equal')
-    plt.tight_layout()
-
-    plt.show()
-    plt.close()
-
-
-def part0():
+def main():
     dataset = ds.get_dataset(size=20, fraction=0.5)
-    # print_dataset(dataset)
-    N = len(dataset)
 
+    N = len(dataset)
     samples = dataset[:, :-1]
     labels = dataset[:, -1][:, np.newaxis]
 
-    aux_matrix1 = samples @ samples.T
-    aux_matrix2 = labels @ labels.T
-
-    # Linear.
-    # matrix_P = (aux_matrix1 + 1) * aux_matrix2
-
-    # Polynomial.
-    matrix_P = np.power(aux_matrix1 + 1, 1) * aux_matrix2
-
-    np.testing.assert_array_almost_equal(matrix_P, matrix_P.T)
-
+    matrix_P = _kernel_func(samples, samples) * (labels @ labels.T)
     vector_q = -np.ones(N)
     vector_h = np.zeros(N)
     matrix_G = -np.eye(N)
+
+    np.testing.assert_array_almost_equal(matrix_P, matrix_P.T)
 
     res = qp(matrix(matrix_P),
              matrix(vector_q),
              matrix(matrix_G),
              matrix(vector_h))
-    alphas = np.array((res['x']))
+    alphas = np.squeeze(res['x'])
 
     nonzero_alphas_indices = np.where(np.abs(alphas) > _eps)[0]
     nonzero_alphas = alphas[nonzero_alphas_indices]
     support_vectors = samples[nonzero_alphas_indices]
-    support_labels = labels[nonzero_alphas_indices]
+    support_labels = np.squeeze(labels[nonzero_alphas_indices])
 
-    indic_func = _get_indicator_function(nonzero_alphas,
-                                         support_vectors,
-                                         support_labels)
+    indic_func = _get_indicator_function(support_vectors=support_vectors,
+                                         support_labels=support_labels,
+                                         alphas=nonzero_alphas,
+                                         kernel_func=_kernel_func)
 
-    xrange = np.arange(-4, 4, 0.05)
-    yrange = np.arange(-4, 4, 0.05)
-    grid = np.array([
-        [
-            indic_func(np.array([x, y]))
-            for y in yrange
-        ]
-        for x in xrange
-    ])
-
-    pos_samples = dataset[np.where(dataset[:, 2] == 1)]
-    neg_samples = dataset[np.where(dataset[:, 2] == -1)]
-
-    assert len(pos_samples) + len(neg_samples) == len(dataset)
-
-    # Plot the dataset.
     plt.figure()
+    ax = plt.gca()
 
-    plt.scatter(pos_samples[:, 0], pos_samples[:, 1],
-                color='b', marker='o', label='Positive')
-    plt.scatter(neg_samples[:, 0], neg_samples[:, 1],
-                color='g', marker='x', label='Negative')
+    plotting.plot_data_points_and_margin(ax=ax,
+                                         dataset=dataset,
+                                         indicator_function=indic_func,
+                                         grid_size=None)
 
-    plt.contour(xrange, yrange, grid)
-    # plt.contour(xrange, yrange, grid, levels=(-1, 0, 1))
-
-    plt.gca().set_aspect('equal')
-    plt.tight_layout()
-
+    plt.legend()
     plt.show()
     plt.close()
-
-    print(nonzero_alphas_indices)
-
-
-def main():
-    part0()
 
 
 if __name__ == '__main__':
