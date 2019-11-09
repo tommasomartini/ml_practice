@@ -16,6 +16,8 @@ logging.basicConfig(format='[%(levelname)s] %(message)s', level=logging.ERROR)
 
 
 _kernel_func = kernels.get_linear_kernel()
+_training_set = ds.get_dataset(size=20, fraction=0.5, seed=0)
+_test_set = ds.get_dataset(size=20, fraction=0.5, seed=1)
 
 
 def _get_indicator_function(support_vectors,
@@ -64,12 +66,32 @@ def _get_indicator_function(support_vectors,
     return _indicator
 
 
-def main():
-    dataset = ds.get_dataset(size=20, fraction=0.5)
-
-    N = len(dataset)
+def _evaluate_model(indicator_function, dataset):
     samples = dataset[:, :-1]
-    labels = dataset[:, -1][:, np.newaxis]
+    labels = dataset[:, -1]
+    predictions = np.sign(indicator_function(samples))
+    accuracy = np.mean(labels == predictions)
+    print('Accuracy: {:.3f}'.format(accuracy))
+
+
+def _plot(dataset, indicator_function, title):
+    plt.figure()
+    ax = plt.gca()
+    plotting.plot_data_points_and_margin(
+        ax=ax,
+        dataset=dataset,
+        indicator_function=indicator_function,
+        grid_size=None)
+    plt.title(title)
+    plt.legend()
+    plt.show()
+    plt.close()
+
+
+def main():
+    N = len(_training_set)
+    samples = _training_set[:, :-1]
+    labels = _training_set[:, -1][:, np.newaxis]
 
     matrix_P = _kernel_func(samples, samples) * (labels @ labels.T)
     vector_q = -np.ones(N)
@@ -97,17 +119,15 @@ def main():
                                          alphas=nonzero_alphas,
                                          kernel_func=_kernel_func)
 
-    plt.figure()
-    ax = plt.gca()
+    _evaluate_model(indicator_function=indic_func,
+                    dataset=_test_set)
 
-    plotting.plot_data_points_and_margin(ax=ax,
-                                         dataset=dataset,
-                                         indicator_function=indic_func,
-                                         grid_size=None)
-
-    plt.legend()
-    plt.show()
-    plt.close()
+    _plot(dataset=_training_set,
+          indicator_function=indic_func,
+          title='Training samples')
+    _plot(dataset=_test_set,
+          indicator_function=indic_func,
+          title='Test samples')
 
 
 if __name__ == '__main__':
