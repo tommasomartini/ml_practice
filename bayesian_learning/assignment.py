@@ -44,20 +44,64 @@ def assignment2():
     print('Assignment 2')
     print('Compute the prior and classify using the Bayesian rule.')
 
+    dataset_size = 200
+
     # Generate a dataset.
-    samples, labels = make_blobs(n_samples=200,
+    samples, labels = make_blobs(n_samples=2 * dataset_size,
                                  centers=5,
                                  n_features=2,
                                  random_state=0)
-    mu, sigma = bl.maximum_likelihood_estimator(samples, labels, naive=False)
-    priors = bl.compute_priors(labels)
-    predictions = bl.classify_bayes(samples=samples,
-                                    priors=priors,
-                                    mu=mu,
-                                    sigma=sigma)
 
-    accuracy = bl.evaluate_accuracy(predictions, labels)
-    print('Accuracy: {:.3f}'.format(accuracy))
+    training_samples = samples[:dataset_size]
+    test_samples = samples[dataset_size:]
+
+    training_labels = labels[:dataset_size]
+    test_labels = labels[dataset_size:]
+
+    mu, sigma = bl.maximum_likelihood_estimator(samples=training_samples,
+                                                labels=training_labels,
+                                                naive=False)
+    priors = bl.compute_priors(labels=training_labels)
+
+    # Evaluate on the training data.
+    training_predictions = bl.classify_bayes(samples=training_samples,
+                                             priors=priors,
+                                             mu=mu,
+                                             sigma=sigma)
+    training_accuracy = bl.evaluate_accuracy(predictions=training_predictions,
+                                             labels=training_labels)
+    print('Training accuracy: {:.3f}'.format(training_accuracy))
+
+    # Evaluate on the test data.
+    test_predictions = bl.classify_bayes(samples=test_samples,
+                                         priors=priors,
+                                         mu=mu,
+                                         sigma=sigma)
+    test_accuracy = bl.evaluate_accuracy(predictions=test_predictions,
+                                         labels=test_labels)
+    print('Test accuracy: {:.3f}'.format(test_accuracy))
+
+    # Plot the classification of the test samples.
+    fig, (ax1, ax2) = plt.subplots(1, 2)
+    plotting.plot_gaussian(ax=ax1,
+                           samples=test_samples,
+                           labels=test_predictions,
+                           mu=mu,
+                           sigma=sigma)
+    ax1.legend()
+    ax1.set_title('Prediction')
+
+    plotting.plot_gaussian(ax=ax2,
+                           samples=test_samples,
+                           labels=test_labels,
+                           mu=mu,
+                           sigma=sigma)
+    ax2.legend()
+    ax2.set_title('Ground truth')
+
+    fig.suptitle('Assignment 2 - Test samples')
+    plt.show()
+    plt.close()
 
 
 def main():
