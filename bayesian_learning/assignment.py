@@ -1,18 +1,30 @@
 import numpy as np
 from sklearn.datasets.samples_generator import make_blobs
+import bayesian_learning.plotting as plotting
 
 
 def _covariance(samples):
     """Computes the covariance matrix of the input samples.
 
+    This implementation consider the `samples` matrix as a N realizations of
+    D variables. Hence the covariance matrix should have shape (D, D).
+
+    This implementation uses the unbiased version of covariance computation,
+    hence dividing by (N - 1) instead of N.
+
     Args:
         samples: Shape=(N, D) with N number of samples and D dimensionality.
 
     Returns:
-        The covariance matrix, shape=(N, N).
+        The covariance matrix, shape=(D, D).
     """
+    N, D = samples.shape
     mu = np.mean(samples, axis=0)
-    cov = (samples - mu) @ (samples - mu).T
+    cov = (samples - mu).T @ (samples - mu) / (N - 1)
+
+    assert cov.shape == (D, D)
+    np.testing.assert_array_almost_equal(cov, np.cov(samples, rowvar=False))
+
     return cov
 
 
@@ -73,8 +85,8 @@ def assignment1():
                                  centers=5,
                                  n_features=2,
                                  random_state=0)
-    mu, sigma = maximum_likelihood_estimator(samples, labels)
-    # plotGaussian(X, labels, mu, sigma)
+    mu, sigma = maximum_likelihood_estimator(samples, labels, naive=False)
+    plotting.plotGaussian(samples, labels, mu, sigma)
 
 
 def main():
