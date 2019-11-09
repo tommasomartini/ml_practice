@@ -45,6 +45,15 @@ def plot_margins(ax, indicator_function, xlims, ylims, grid_size=None):
     zz = indicator_function(np.c_[xx.ravel(), yy.ravel()])
     grid = zz.reshape(xx.shape)
 
+    # Plot the classification regions.
+    ax.contourf(xrange,
+                yrange,
+                grid,
+                levels=(-np.inf, -1, 1, np.inf),
+                colors=('g', 'w', 'b'),
+                alpha=0.1)
+
+    # Plot the margin lines.
     contours = ax.contour(xrange,
                           yrange,
                           grid,
