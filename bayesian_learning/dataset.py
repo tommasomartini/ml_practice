@@ -70,15 +70,12 @@ def load_dataset(dataset_name):
     return samples, labels, pcadim
 
 
-def _random_split(elements, fraction, seed=None):
+def _random_split(elements, fraction):
     size = len(elements)
     split1_size = int(np.rint(size * fraction))
-
-    np.random.seed(seed)
     shuffled_elements = np.random.permutation(elements)
     split1 = shuffled_elements[:split1_size]
     split2 = shuffled_elements[split1_size:]
-
     return split1, split2
 
 
@@ -90,18 +87,18 @@ def split_dataset(samples,
     N, _D = samples.shape
     assert labels.shape == (N,)
 
+    np.random.seed(seed)
+
     if not balance_classes:
         training_indices, test_indices = _random_split(elements=np.arange(N),
-                                                       fraction=train_fraction,
-                                                       seed=seed)
+                                                       fraction=train_fraction)
     else:
         training_indices = np.array([], dtype=int)
         test_indices = np.array([], dtype=int)
         for idx, class_id in enumerate(np.unique(labels)):
             class_training_indices, class_test_indices = \
                 _random_split(elements=np.where(labels == class_id)[0],
-                              fraction=train_fraction,
-                              seed=idx)
+                              fraction=train_fraction)
             training_indices = np.concatenate((training_indices,
                                                class_training_indices))
             test_indices = np.concatenate((test_indices, class_test_indices))
