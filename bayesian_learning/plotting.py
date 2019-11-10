@@ -84,23 +84,12 @@ def plot_gaussian_distribution_ellipse(ax, mu, sigma, **kwargs):
     ax.add_artist(ellipse)
 
 
-def plot_gaussian(ax, samples, labels, mu, sigma):
+def plot_gaussians(ax, labels, mu, sigma):
     classes = np.unique(labels)
     cmap = cm.get_cmap('tab10')
     for idx, class_id in enumerate(classes):
         # class_color = cmap(idx / (len(classes) - 1))
         class_color = cmap((idx % 10) / 10)
-
-        # Draw the samples.
-        class_indices = np.where(labels == class_id)[0]
-        class_samples = samples[class_indices]
-        ax.scatter(class_samples[:, 0],
-                   class_samples[:, 1],
-                   color=class_color,
-                   marker='o',
-                   label='Class {}'.format(class_id))
-
-        # Draw the estimated Gaussian contour.
         class_mu = mu[idx]
         class_sigma = sigma[idx]
         plot_gaussian_distribution_ellipse(ax=ax,
@@ -108,3 +97,18 @@ def plot_gaussian(ax, samples, labels, mu, sigma):
                                            sigma=class_sigma,
                                            color=class_color,
                                            alpha=0.3)
+
+
+def plot_samples_2d(ax, samples, labels):
+    classes = np.unique(labels)
+    cmap = cm.get_cmap('tab10')
+    for idx, class_id in enumerate(classes):
+        # class_color = cmap(idx / (len(classes) - 1))
+        class_color = cmap((idx % 10) / 10)
+        class_indices = np.where(labels == class_id)[0]
+        class_samples = samples[class_indices]
+        ax.scatter(class_samples[:, 0],
+                   class_samples[:, 1],
+                   color=class_color,
+                   marker='o',
+                   label='Class {}'.format(class_id))

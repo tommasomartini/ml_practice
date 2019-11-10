@@ -33,11 +33,13 @@ def assignment1():
 
     plt.figure()
     ax = plt.gca()
-    plotting.plot_gaussian(ax=ax,
-                           samples=samples,
-                           labels=labels,
-                           mu=mu,
-                           sigma=sigma)
+    plotting.plot_samples_2d(ax=ax,
+                             samples=samples,
+                             labels=labels)
+    plotting.plot_gaussians(ax=ax,
+                            labels=labels,
+                            mu=mu,
+                            sigma=sigma)
     plt.title('Assignment 1')
     ax.legend()
     plt.show()
@@ -80,19 +82,23 @@ def assignment2():
 
     # Plot the classification of the test samples.
     fig, (ax1, ax2) = plt.subplots(1, 2)
-    plotting.plot_gaussian(ax=ax1,
-                           samples=test_samples,
-                           labels=test_labels,
-                           mu=bayes_classifier.mu,
-                           sigma=bayes_classifier.sigma)
+    plotting.plot_samples_2d(ax=ax1,
+                             samples=test_samples,
+                             labels=test_labels)
+    plotting.plot_gaussians(ax=ax1,
+                            labels=test_labels,
+                            mu=bayes_classifier.mu,
+                            sigma=bayes_classifier.sigma)
     ax1.legend()
     ax1.set_title('Ground truth')
 
-    plotting.plot_gaussian(ax=ax2,
-                           samples=test_samples,
-                           labels=test_predictions,
-                           mu=bayes_classifier.mu,
-                           sigma=bayes_classifier.sigma)
+    plotting.plot_samples_2d(ax=ax2,
+                             samples=test_samples,
+                             labels=test_predictions)
+    plotting.plot_gaussians(ax=ax2,
+                            labels=test_predictions,
+                            mu=bayes_classifier.mu,
+                            sigma=bayes_classifier.sigma)
     plotting.plot_boundaries(ax=ax2,
                              classifier=bayes_classifier,
                              grid_size=1000)
@@ -200,19 +206,23 @@ def assignment3p1():
 
         # Plot the classification of the test samples.
         fig, (ax1, ax2) = plt.subplots(1, 2)
-        plotting.plot_gaussian(ax=ax1,
-                               samples=test_samples,
-                               labels=test_labels,
-                               mu=classifier.mu,
-                               sigma=classifier.sigma)
+        plotting.plot_samples_2d(ax=ax1,
+                                 samples=test_samples,
+                                 labels=test_labels)
+        plotting.plot_gaussians(ax=ax1,
+                                labels=test_labels,
+                                mu=classifier.mu,
+                                sigma=classifier.sigma)
         ax1.legend()
         ax1.set_title('Ground truth')
 
-        plotting.plot_gaussian(ax=ax2,
-                               samples=test_samples,
-                               labels=test_predictions,
-                               mu=classifier.mu,
-                               sigma=classifier.sigma)
+        plotting.plot_samples_2d(ax=ax2,
+                                 samples=test_samples,
+                                 labels=test_predictions)
+        plotting.plot_gaussians(ax=ax2,
+                                labels=test_predictions,
+                                mu=classifier.mu,
+                                sigma=classifier.sigma)
         plotting.plot_boundaries(ax=ax2,
                                  classifier=classifier,
                                  grid_size=1000)
@@ -228,12 +238,12 @@ def assignment3p1():
 
 
 def main():
-    # assignment1()
-    # _separator()
-    # assignment2()
-    # _separator()
-    # assignment3()
-    # _separator()
+    assignment1()
+    _separator()
+    assignment2()
+    _separator()
+    assignment3()
+    _separator()
     assignment3p1()
 
 
