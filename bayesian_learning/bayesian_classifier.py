@@ -155,3 +155,41 @@ def classify_bayes(samples, priors, mu, sigma):
 
     predictions = np.argmax(log_probs, axis=1)
     return predictions
+
+
+class BayesClassifier:
+
+    def __init__(self, priors, mu, sigma):
+        self._priors = priors
+        self._mu = mu
+        self._sigma = sigma
+
+    def classify(self, samples):
+        predictions = classify_bayes(samples=samples,
+                                     priors=self._priors,
+                                     mu=self._mu,
+                                     sigma=self._sigma)
+        return predictions
+
+    @staticmethod
+    def train(samples, labels, naive):
+        priors = compute_priors(labels=labels)
+        mu, sigma = maximum_likelihood_estimator(samples=samples,
+                                                 labels=labels,
+                                                 naive=naive)
+        bayes_classifier = BayesClassifier(priors=priors,
+                                           mu=mu,
+                                           sigma=sigma)
+        return bayes_classifier
+
+    @property
+    def priors(self):
+        return self._priors
+
+    @property
+    def mu(self):
+        return self._mu
+
+    @property
+    def sigma(self):
+        return self._sigma

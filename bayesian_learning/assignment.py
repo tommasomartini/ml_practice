@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.datasets.samples_generator import make_blobs
 
-import bayesian_learning.bayesian_learning_utils as bl
+import bayesian_learning.bayesian_classifier as bc
 import bayesian_learning.plotting as plotting
 
 sns.set()
@@ -25,7 +25,7 @@ def assignment1():
                                  centers=5,
                                  n_features=2,
                                  random_state=0)
-    mu, sigma = bl.maximum_likelihood_estimator(samples, labels, naive=False)
+    mu, sigma = bc.maximum_likelihood_estimator(samples, labels, naive=False)
 
     plt.figure()
     ax = plt.gca()
@@ -58,26 +58,19 @@ def assignment2():
     training_labels = labels[:dataset_size]
     test_labels = labels[dataset_size:]
 
-    mu, sigma = bl.maximum_likelihood_estimator(samples=training_samples,
+    bayes_classifier = bc.BayesClassifier.train(samples=training_samples,
                                                 labels=training_labels,
                                                 naive=False)
-    priors = bl.compute_priors(labels=training_labels)
 
     # Evaluate on the training data.
-    training_predictions = bl.classify_bayes(samples=training_samples,
-                                             priors=priors,
-                                             mu=mu,
-                                             sigma=sigma)
-    training_accuracy = bl.evaluate_accuracy(predictions=training_predictions,
+    training_predictions = bayes_classifier.classify(training_samples)
+    training_accuracy = bc.evaluate_accuracy(predictions=training_predictions,
                                              labels=training_labels)
     print('Training accuracy: {:.3f}'.format(training_accuracy))
 
     # Evaluate on the test data.
-    test_predictions = bl.classify_bayes(samples=test_samples,
-                                         priors=priors,
-                                         mu=mu,
-                                         sigma=sigma)
-    test_accuracy = bl.evaluate_accuracy(predictions=test_predictions,
+    test_predictions = bayes_classifier.classify(test_samples)
+    test_accuracy = bc.evaluate_accuracy(predictions=test_predictions,
                                          labels=test_labels)
     print('Test accuracy: {:.3f}'.format(test_accuracy))
 
@@ -86,28 +79,35 @@ def assignment2():
     plotting.plot_gaussian(ax=ax1,
                            samples=test_samples,
                            labels=test_predictions,
-                           mu=mu,
-                           sigma=sigma)
+                           mu=bayes_classifier.mu,
+                           sigma=bayes_classifier.sigma)
     ax1.legend()
     ax1.set_title('Prediction')
 
     plotting.plot_gaussian(ax=ax2,
                            samples=test_samples,
                            labels=test_labels,
-                           mu=mu,
-                           sigma=sigma)
+                           mu=bayes_classifier.mu,
+                           sigma=bayes_classifier.sigma)
     ax2.legend()
     ax2.set_title('Ground truth')
 
-    fig.suptitle('Assignment 2 - Test samples')
+    fig.suptitle('Assignment 2 - Test samples\n'
+                 'Accuracy: {:.3f}'.format(test_accuracy))
     plt.show()
     plt.close()
+
+
+def assignment3():
+    pass
 
 
 def main():
     # assignment1()
     # _separator()
     assignment2()
+    # _separator()
+    # assignment3()
 
 
 if __name__ == '__main__':
