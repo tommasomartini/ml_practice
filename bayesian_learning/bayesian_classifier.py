@@ -74,9 +74,15 @@ def maximum_likelihood_estimator(samples, labels, weights=None, naive=True):
         class_indices = np.where(labels == class_id)[0]
         class_samples = samples[class_indices, :]
 
-        class_mean = np.average(class_samples, axis=0, weights=weights)
+        if weights is None:
+            class_weights = None
+        else:
+            class_weights = weights[class_indices]
+            class_weights = class_weights / np.sum(class_weights)
 
-        class_covariance = _covariance(class_samples, weights=weights)
+        class_mean = np.average(class_samples, axis=0, weights=class_weights)
+
+        class_covariance = _covariance(class_samples, weights=class_weights)
         if naive:
             # Apply the Naive Bayes assumption.
             class_covariance = np.diag(np.diag(class_covariance))
