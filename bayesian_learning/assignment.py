@@ -81,6 +81,9 @@ def assignment2():
                            labels=test_predictions,
                            mu=bayes_classifier.mu,
                            sigma=bayes_classifier.sigma)
+    plotting.plot_boudaries(ax=ax1,
+                            classifier=bayes_classifier,
+                            grid_size=1000)
     ax1.legend()
     ax1.set_title('Prediction')
 
