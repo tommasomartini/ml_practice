@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
 from prettytable import PrettyTable
+from sklearn import decomposition
 from sklearn.datasets.samples_generator import make_blobs
 
 import bayesian_learning.bayesian_classifier as bc
@@ -172,12 +173,68 @@ def assignment3():
     print(pretty_table)
 
 
+def assignment3p1():
+    print('Assignment 3.1')
+    print('Use PCA to reduce the datasets to 2D and plot the boundaries.')
+
+    for dataset_name in dataset.DatasetNames:
+        samples, labels = dataset.load_dataset(dataset_name)
+        training_samples, training_labels, test_samples, test_labels = \
+            dataset.split_dataset(samples=samples,
+                                  labels=labels,
+                                  train_fraction=0.5,
+                                  balance_classes=True,
+                                  seed=0)
+
+        pca = decomposition.PCA(n_components=2)
+        pca.fit(training_samples)
+        training_samples = pca.transform(training_samples)
+        test_samples = pca.transform(test_samples)
+
+        classifier = bc.BayesClassifier.train(samples=training_samples,
+                                              labels=training_labels,
+                                              naive=False)
+        test_predictions = classifier.classify(samples=test_samples)
+        test_accuracy = bc.evaluate_accuracy(predictions=test_predictions,
+                                             labels=test_labels)
+
+        # Plot the classification of the test samples.
+        fig, (ax1, ax2) = plt.subplots(1, 2)
+        plotting.plot_gaussian(ax=ax1,
+                               samples=test_samples,
+                               labels=test_labels,
+                               mu=classifier.mu,
+                               sigma=classifier.sigma)
+        ax1.legend()
+        ax1.set_title('Ground truth')
+
+        plotting.plot_gaussian(ax=ax2,
+                               samples=test_samples,
+                               labels=test_predictions,
+                               mu=classifier.mu,
+                               sigma=classifier.sigma)
+        plotting.plot_boudaries(ax=ax2,
+                                classifier=classifier,
+                                grid_size=1000)
+        ax2.legend()
+        ax2.set_title('Prediction')
+
+        fig.suptitle('Assignment 3.1\n'
+                     'Dataset: {}\n'
+                     'Accuracy: {:.3f}'.format(dataset_name.value,
+                                               test_accuracy))
+        plt.show()
+        plt.close()
+
+
 def main():
     # assignment1()
     # _separator()
     # assignment2()
     # _separator()
-    assignment3()
+    # assignment3()
+    # _separator()
+    assignment3p1()
 
 
 if __name__ == '__main__':
