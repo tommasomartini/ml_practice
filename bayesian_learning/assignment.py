@@ -3,7 +3,10 @@ import seaborn as sns
 from sklearn.datasets.samples_generator import make_blobs
 
 import bayesian_learning.bayesian_classifier as bc
+import numpy as np
 import bayesian_learning.plotting as plotting
+from prettytable import PrettyTable
+import bayesian_learning.dataset as dataset
 
 sns.set()
 
@@ -78,22 +81,22 @@ def assignment2():
     fig, (ax1, ax2) = plt.subplots(1, 2)
     plotting.plot_gaussian(ax=ax1,
                            samples=test_samples,
-                           labels=test_predictions,
-                           mu=bayes_classifier.mu,
-                           sigma=bayes_classifier.sigma)
-    plotting.plot_boudaries(ax=ax1,
-                            classifier=bayes_classifier,
-                            grid_size=1000)
-    ax1.legend()
-    ax1.set_title('Prediction')
-
-    plotting.plot_gaussian(ax=ax2,
-                           samples=test_samples,
                            labels=test_labels,
                            mu=bayes_classifier.mu,
                            sigma=bayes_classifier.sigma)
+    ax1.legend()
+    ax1.set_title('Ground truth')
+
+    plotting.plot_gaussian(ax=ax2,
+                           samples=test_samples,
+                           labels=test_predictions,
+                           mu=bayes_classifier.mu,
+                           sigma=bayes_classifier.sigma)
+    plotting.plot_boudaries(ax=ax2,
+                            classifier=bayes_classifier,
+                            grid_size=1000)
     ax2.legend()
-    ax2.set_title('Ground truth')
+    ax2.set_title('Prediction')
 
     fig.suptitle('Assignment 2 - Test samples\n'
                  'Accuracy: {:.3f}'.format(test_accuracy))
@@ -102,15 +105,79 @@ def assignment2():
 
 
 def assignment3():
-    pass
+    print('Assignment 3')
+    print('Test your Bayesian Classifier on real datasets.')
+
+    num_trials = 100
+
+    pretty_table = PrettyTable()
+    pretty_table.field_names = ['Dataset', 'Non naive', 'Naive']
+
+    datasets = [
+        dataset.DatasetNames.IRIS,
+        dataset.DatasetNames.WINE,
+        dataset.DatasetNames.VOWEL,
+    ]
+    for dataset_name in datasets:
+        samples, labels, _ = dataset.load_dataset(dataset_name)
+
+        accuracies = []
+        naive_accuracies = []
+        for trial_idx in range(num_trials):
+            (training_samples,
+             training_labels,
+             test_samples,
+             test_labels,
+             training_indices,
+             test_indices) = dataset.split_dataset(samples=samples,
+                                                   labels=labels,
+                                                   train_fraction=0.5,
+                                                   balance_classes=True,
+                                                   seed=trial_idx)
+
+            # Non-naive classifier.
+            classifier = bc.BayesClassifier.train(samples=training_samples,
+                                                  labels=training_labels,
+                                                  naive=False)
+            test_predictions = classifier.classify(samples=test_samples)
+            test_accuracy = bc.evaluate_accuracy(predictions=test_predictions,
+                                                 labels=test_labels)
+            accuracies.append(test_accuracy)
+
+            # Naive classifier.
+            naive_classifier = bc.BayesClassifier.train(samples=training_samples,
+                                                        labels=training_labels,
+                                                        naive=True)
+            naive_test_predictions = naive_classifier.classify(samples=test_samples)
+            naive_test_accuracy = bc.evaluate_accuracy(
+                predictions=naive_test_predictions, labels=test_labels)
+            naive_accuracies.append(naive_test_accuracy)
+
+        mean_accuracy = np.mean(accuracies)
+        std_accuracy = np.std(accuracies)
+        naive_mean_accuracy = np.mean(naive_accuracies)
+        naive_std_accuracy = np.std(naive_accuracies)
+
+        def _format_acc(mean_, std_):
+            acc_str = '{:.3f} +/- {:.3f}'.format(mean_, std_)
+            return acc_str
+
+        pretty_table.add_row([dataset_name.value,
+                              _format_acc(mean_accuracy, std_accuracy),
+                              _format_acc(naive_mean_accuracy,
+                                          naive_std_accuracy)])
+
+    print()
+    print('Mean accuracy on test set ({} trials)'.format(num_trials))
+    print(pretty_table)
 
 
 def main():
     # assignment1()
     # _separator()
-    assignment2()
+    # assignment2()
     # _separator()
-    # assignment3()
+    assignment3()
 
 
 if __name__ == '__main__':
