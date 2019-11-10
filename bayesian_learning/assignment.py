@@ -1,12 +1,12 @@
 import matplotlib.pyplot as plt
+import numpy as np
 import seaborn as sns
+from prettytable import PrettyTable
 from sklearn.datasets.samples_generator import make_blobs
 
 import bayesian_learning.bayesian_classifier as bc
-import numpy as np
-import bayesian_learning.plotting as plotting
-from prettytable import PrettyTable
 import bayesian_learning.dataset as dataset
+import bayesian_learning.plotting as plotting
 
 sns.set()
 
@@ -143,10 +143,12 @@ def assignment3():
             accuracies.append(test_accuracy)
 
             # Naive classifier.
-            naive_classifier = bc.BayesClassifier.train(samples=training_samples,
-                                                        labels=training_labels,
-                                                        naive=True)
-            naive_test_predictions = naive_classifier.classify(samples=test_samples)
+            naive_classifier = \
+                bc.BayesClassifier.train(samples=training_samples,
+                                         labels=training_labels,
+                                         naive=True)
+            naive_test_predictions = \
+                naive_classifier.classify(samples=test_samples)
             naive_test_accuracy = bc.evaluate_accuracy(
                 predictions=naive_test_predictions, labels=test_labels)
             naive_accuracies.append(naive_test_accuracy)
