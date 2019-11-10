@@ -112,6 +112,4 @@ def split_dataset(samples,
     return (training_samples,
             training_labels,
             test_samples,
-            test_labels,
-            training_indices,
-            test_indices)
+            test_labels)

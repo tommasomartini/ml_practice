@@ -127,13 +127,11 @@ def assignment3():
             (training_samples,
              training_labels,
              test_samples,
-             test_labels,
-             training_indices,
-             test_indices) = dataset.split_dataset(samples=samples,
-                                                   labels=labels,
-                                                   train_fraction=0.5,
-                                                   balance_classes=True,
-                                                   seed=trial_idx)
+             test_labels) = dataset.split_dataset(samples=samples,
+                                                  labels=labels,
+                                                  train_fraction=0.5,
+                                                  balance_classes=True,
+                                                  seed=trial_idx)
 
             # Non-naive classifier.
             classifier = bc.BayesClassifier.train(samples=training_samples,
