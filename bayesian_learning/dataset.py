@@ -68,3 +68,23 @@ def load_dataset(dataset_name):
         raise ValueError('Unknown dataset {}'.format(dataset_name))
 
     return samples, labels, pcadim
+
+
+def split_dataset(samples, labels, train_fraction=0.5, seed=None):
+    N, _D = samples.shape
+    assert labels.shape == (N,)
+
+    training_size = int(np.rint(N * train_fraction))
+
+    np.random.seed(seed)
+    shuffled_indices = np.random.permutation(N)
+    training_indices = shuffled_indices[:training_size]
+    test_indices = shuffled_indices[training_size:]
+
+    training_samples = samples[training_indices, :]
+    training_labels = labels[training_indices]
+
+    test_samples = samples[test_indices, :]
+    test_labels = labels[test_indices]
+
+    return training_samples, training_labels, test_samples, test_labels, training_indices, test_indices
