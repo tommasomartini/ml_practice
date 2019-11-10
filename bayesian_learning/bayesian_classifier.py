@@ -6,27 +6,44 @@ def evaluate_accuracy(predictions, labels):
     return accuracy
 
 
-def _covariance(samples):
+def _covariance(samples, weights=None):
     """Computes the covariance matrix of the input samples.
 
     This implementation consider the `samples` matrix as a N realizations of
     D variables. Hence the covariance matrix should have shape (D, D).
 
     This implementation uses the unbiased version of covariance computation,
-    hence dividing by (N - 1) instead of N.
+    hence dividing by the Bessel's correction factor (N - 1) instead of N.
 
     Args:
         samples: Shape=(N, D) with N number of samples and D dimensionality.
+        weights (optional): Shape=(N,); weight for each sample. They should
+            sum up to 1. If None, no weights are used.
 
     Returns:
         The covariance matrix, shape=(D, D).
     """
     N, D = samples.shape
-    mu = np.mean(samples, axis=0)
-    cov = (samples - mu).T @ (samples - mu) / (N - 1)
+    mu = np.average(samples, axis=0, weights=weights)
+
+    if weights is None:
+        cov = (samples - mu).T @ (samples - mu) / (N - 1)
+    else:
+        assert len(weights) == N
+        assert np.abs(np.sum(weights) - 1) < 1e-5
+        aux1 = samples - mu                         # (N, D) = (N, D) - (D,)
+        aux2 = \
+            np.sqrt(weights)[:, np.newaxis] * aux1  # (N, D) = (N, 1) * (N, D)
+        aux3 = aux2.T @ aux2                        # (D, D)
+        den = 1 - np.sum(weights ** 2)              # scalar
+        cov = aux3 / den                            # (D, D)
 
     assert cov.shape == (D, D)
-    np.testing.assert_array_almost_equal(cov, np.cov(samples, rowvar=False))
+    np.testing.assert_array_almost_equal(cov,
+                                         np.cov(samples,
+                                                aweights=weights,
+                                                bias=False,
+                                                rowvar=False))
 
     return cov
 
@@ -38,7 +55,8 @@ def maximum_likelihood_estimator(samples, labels, weights=None, naive=True):
     Args:
         samples: Shape=(N, D) with N number of samples and D dimensionality.
         labels: Shape=(N,) with N number of samples.
-        weights: TODO
+        weights (optional): Shape=(N,); weight for each sample. They should
+            sum up to 1. If None, no weights are used.
         naive (bool, optional): If True, the Naive Bayes assumption is applied
             and the covariance matrix is created diagonal.
 
@@ -50,19 +68,15 @@ def maximum_likelihood_estimator(samples, labels, weights=None, naive=True):
     """
     assert samples.shape[0] == labels.shape[0]
 
-    N, D = samples.shape
     classes = np.unique(labels)
-
-    if weights is None:
-        weights = np.ones(N) / N
 
     def _compute_mu_and_sigma_for_class(class_id):
         class_indices = np.where(labels == class_id)[0]
         class_samples = samples[class_indices, :]
 
-        class_mean = np.mean(class_samples, axis=0)
+        class_mean = np.average(class_samples, axis=0, weights=weights)
 
-        class_covariance = _covariance(class_samples)
+        class_covariance = _covariance(class_samples, weights=weights)
         if naive:
             # Apply the Naive Bayes assumption.
             class_covariance = np.diag(np.diag(class_covariance))
@@ -86,20 +100,27 @@ def compute_priors(labels, weights=None):
 
     Args:
         labels: Shape=(N,); label for each sample.
-        weights: TODO
+        weights (optional): Shape=(N,); weight for each sample. They should
+            sum up to 1. If None, no weights are used.
 
     Returns:
         A vector of probabilities with shape=(C,) with C number of classes.
     """
     N = len(labels)
+
     if weights is None:
         weights = np.ones(N) / N
-    else:
-        assert (len(weights) == N)
 
-    classes = np.unique(labels)
-    priors = np.array([len(np.where(labels == class_id)[0])
-                       for class_id in classes]) / N
+    assert len(weights) == N
+    assert np.abs(np.sum(weights) - 1) < 1e-6
+
+    priors = np.array([
+        np.sum(weights[np.where(labels == class_id)[0]])
+        for class_id in np.unique(labels)
+    ])
+
+    assert np.abs(np.sum(priors) - 1) < 1e-6
+
     return priors
 
 
