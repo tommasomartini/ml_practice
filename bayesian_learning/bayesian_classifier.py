@@ -195,10 +195,11 @@ class BayesClassifier:
         return predictions
 
     @staticmethod
-    def train(samples, labels, naive):
-        priors = compute_priors(labels=labels)
+    def train(samples, labels, naive, weights=None):
+        priors = compute_priors(labels=labels, weights=weights)
         mu, sigma = maximum_likelihood_estimator(samples=samples,
                                                  labels=labels,
+                                                 weights=weights,
                                                  naive=naive)
         bayes_classifier = BayesClassifier(priors=priors,
                                            mu=mu,
