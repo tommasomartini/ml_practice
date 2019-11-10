@@ -95,8 +95,8 @@ def split_dataset(samples,
                                                        fraction=train_fraction,
                                                        seed=seed)
     else:
-        training_indices = np.array([])
-        test_indices = np.array([])
+        training_indices = np.array([], dtype=int)
+        test_indices = np.array([], dtype=int)
         for idx, class_id in enumerate(np.unique(labels)):
             class_training_indices, class_test_indices = \
                 _random_split(elements=np.where(labels == class_id)[0],
