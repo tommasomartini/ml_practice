@@ -135,10 +135,10 @@ def classify_bayes(samples, priors, mu, sigma):
         """
         aux1 = -0.5 * np.log(np.linalg.det(sigma_))      # scalar
         aux2 = samples_ - mu_[np.newaxis, :]            # (N, D)
-        sigma_inv = np.linalg.inv(sigma_)                # (D, D)
+        sigma_inv = np.linalg.inv(sigma_)               # (D, D)
         aux3 = aux2 @ sigma_inv                         # (N, D)
-        aux4 = aux3 @ aux2.T                            # (N, N)
-        aux5 = -0.5 * np.diag(aux4)                     # (N,)
+        aux4 = aux3 * aux2                              # (N, D)
+        aux5 = -0.5 * np.sum(aux4, axis=1)              # (N,)
         log_prob_ = aux1 + aux5 + np.log(prior_)
         return log_prob_
 
@@ -164,6 +164,8 @@ class BayesClassifier:
         self._mu = mu
         self._sigma = sigma
 
+        self.labels = []
+
     def classify(self, samples):
         predictions = classify_bayes(samples=samples,
                                      priors=self._priors,
@@ -180,6 +182,7 @@ class BayesClassifier:
         bayes_classifier = BayesClassifier(priors=priors,
                                            mu=mu,
                                            sigma=sigma)
+        bayes_classifier.labels = np.unique(labels)
         return bayes_classifier
 
     @property
