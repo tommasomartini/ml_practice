@@ -70,16 +70,41 @@ def load_dataset(dataset_name):
     return samples, labels, pcadim
 
 
-def split_dataset(samples, labels, train_fraction=0.5, seed=None):
+def _random_split(elements, fraction, seed=None):
+    size = len(elements)
+    split1_size = int(np.rint(size * fraction))
+
+    np.random.seed(seed)
+    shuffled_elements = np.random.permutation(elements)
+    split1 = shuffled_elements[:split1_size]
+    split2 = shuffled_elements[split1_size:]
+
+    return split1, split2
+
+
+def split_dataset(samples,
+                  labels,
+                  train_fraction=0.5,
+                  balance_classes=False,
+                  seed=None):
     N, _D = samples.shape
     assert labels.shape == (N,)
 
-    training_size = int(np.rint(N * train_fraction))
-
-    np.random.seed(seed)
-    shuffled_indices = np.random.permutation(N)
-    training_indices = shuffled_indices[:training_size]
-    test_indices = shuffled_indices[training_size:]
+    if not balance_classes:
+        training_indices, test_indices = _random_split(elements=np.arange(N),
+                                                       fraction=train_fraction,
+                                                       seed=seed)
+    else:
+        training_indices = np.array([])
+        test_indices = np.array([])
+        for idx, class_id in enumerate(np.unique(labels)):
+            class_training_indices, class_test_indices = \
+                _random_split(elements=np.where(labels == class_id)[0],
+                              fraction=train_fraction,
+                              seed=idx)
+            training_indices = np.concatenate((training_indices,
+                                               class_training_indices))
+            test_indices = np.concatenate((test_indices, class_test_indices))
 
     training_samples = samples[training_indices, :]
     training_labels = labels[training_indices]
@@ -87,4 +112,9 @@ def split_dataset(samples, labels, train_fraction=0.5, seed=None):
     test_samples = samples[test_indices, :]
     test_labels = labels[test_indices]
 
-    return training_samples, training_labels, test_samples, test_labels, training_indices, test_indices
+    return (training_samples,
+            training_labels,
+            test_samples,
+            test_labels,
+            training_indices,
+            test_indices)
