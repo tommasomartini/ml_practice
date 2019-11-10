@@ -51,7 +51,7 @@ def maximum_likelihood_estimator(samples, labels, weights=None, naive=True):
     assert samples.shape[0] == labels.shape[0]
 
     N, D = samples.shape
-    classes = sorted(list(set(labels)))
+    classes = np.unique(labels)
 
     if weights is None:
         weights = np.ones(N) / N
@@ -97,7 +97,7 @@ def compute_priors(labels, weights=None):
     else:
         assert (len(weights) == N)
 
-    classes = sorted(list(set(labels)))
+    classes = np.unique(labels)
     priors = np.array([len(np.where(labels == class_id)[0])
                        for class_id in classes]) / N
     return priors

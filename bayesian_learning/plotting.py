@@ -49,7 +49,7 @@ def plot_gaussian_distribution_ellipse(ax, mu, sigma, **kwargs):
 
 
 def plot_gaussian(ax, samples, labels, mu, sigma):
-    classes = sorted(list(set(labels)))
+    classes = np.unique(labels)
     cmap = cm.get_cmap('tab10')
     for idx, class_id in enumerate(classes):
         # class_color = cmap(idx / (len(classes) - 1))
