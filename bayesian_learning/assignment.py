@@ -93,9 +93,9 @@ def assignment2():
                            labels=test_predictions,
                            mu=bayes_classifier.mu,
                            sigma=bayes_classifier.sigma)
-    plotting.plot_boudaries(ax=ax2,
-                            classifier=bayes_classifier,
-                            grid_size=1000)
+    plotting.plot_boundaries(ax=ax2,
+                             classifier=bayes_classifier,
+                             grid_size=1000)
     ax2.legend()
     ax2.set_title('Prediction')
 
@@ -213,9 +213,9 @@ def assignment3p1():
                                labels=test_predictions,
                                mu=classifier.mu,
                                sigma=classifier.sigma)
-        plotting.plot_boudaries(ax=ax2,
-                                classifier=classifier,
-                                grid_size=1000)
+        plotting.plot_boundaries(ax=ax2,
+                                 classifier=classifier,
+                                 grid_size=1000)
         ax2.legend()
         ax2.set_title('Prediction')
 

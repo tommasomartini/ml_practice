@@ -7,7 +7,7 @@ _NUM_STD_FOR_GAUSSIAN_PLOT = 2
 _DEFAULT_GRID_SIZE = (100, 100)
 
 
-def plot_boudaries(ax, classifier, xlims=None, ylims=None, grid_size=None):
+def plot_boundaries(ax, classifier, xlims=None, ylims=None, grid_size=None):
     xlims = xlims or ax.get_xlim()
     try:
         min_x, max_x = xlims
