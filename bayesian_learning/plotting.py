@@ -32,10 +32,7 @@ def plot_boudaries(ax, classifier, xlims=None, ylims=None, grid_size=None):
     zz = classifier.classify(np.c_[xx.ravel(), yy.ravel()])
 
     cmap = cm.get_cmap('tab10')
-    zz_colors = np.array([
-        cmap((class_idx % 10) / 10)
-        for class_idx in zz
-    ])
+    zz_colors = cmap((zz % 10) / 10)
     color_grid = zz_colors.reshape((grid_size_y, grid_size_x, -1))
 
     ax.imshow(color_grid,
