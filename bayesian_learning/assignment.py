@@ -119,7 +119,7 @@ def assignment3():
         dataset.DatasetNames.VOWEL,
     ]
     for dataset_name in datasets:
-        samples, labels, _ = dataset.load_dataset(dataset_name)
+        samples, labels = dataset.load_dataset(dataset_name)
 
         accuracies = []
         naive_accuracies = []

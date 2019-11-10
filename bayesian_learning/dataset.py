@@ -43,31 +43,27 @@ def load_dataset(dataset_name):
         samples_path, labels_path = _dataset_paths[DatasetNames.IRIS]
         samples = genfromtxt(samples_path, delimiter=',')
         labels = genfromtxt(labels_path, delimiter=',', dtype=np.int) - 1
-        pcadim = 2
 
     elif dataset_name == DatasetNames.WINE:
         samples_path, labels_path = _dataset_paths[DatasetNames.WINE]
         samples = genfromtxt(samples_path, delimiter=',')
         labels = genfromtxt(labels_path, delimiter=',', dtype=np.int) - 1
-        pcadim = 0
 
     elif dataset_name == DatasetNames.OLIVETTI:
         samples_path, labels_path = _dataset_paths[DatasetNames.OLIVETTI]
         samples = genfromtxt(samples_path, delimiter=',')
         samples = samples / 255
         labels = genfromtxt(labels_path, delimiter=',', dtype=np.int)
-        pcadim = 20
 
     elif dataset_name == DatasetNames.VOWEL:
         samples_path, labels_path = _dataset_paths[DatasetNames.VOWEL]
         samples = genfromtxt(samples_path, delimiter=',')
         labels = genfromtxt(labels_path, delimiter=',', dtype=np.int)
-        pcadim = 0
 
     else:
         raise ValueError('Unknown dataset {}'.format(dataset_name))
 
-    return samples, labels, pcadim
+    return samples, labels
 
 
 def _random_split(elements, fraction):
