@@ -60,7 +60,7 @@ def classify_boost(samples, classifiers, alphas):
         curr_predictions = classifier.classify(samples)      # (N,)
 
         # Use the predictions as indices for the class.
-        votes[:, curr_predictions] += alpha
+        votes[np.arange(N), curr_predictions] += alpha
 
     predictions = np.argmax(votes, axis=1)
     return predictions
