@@ -13,6 +13,13 @@ import boosting.boost_classifier as boost_cls
 sns.set()
 
 
+def _separator():
+    sep_line = '#' * 80
+    print()
+    print(sep_line)
+    print()
+
+
 def assignment5():
     print('Assignment 5')
     print('Boosted Bayesian classifiers: first implementation')
@@ -40,50 +47,70 @@ def assignment5():
 
 
 def assignment5p1():
+    print('Assignment 5.1')
+    print('Compare weak classifiers and boosted classifiers on real datasets.')
+
     num_trials = 10
 
     pretty_table = PrettyTable()
-    pretty_table.field_names = ['Dataset', 'Naive']
+    pretty_table.field_names = ['Dataset', 'Weak', 'Boosted']
 
-    datasets = [
-        dataset.DatasetNames.IRIS,
-        dataset.DatasetNames.WINE,
-        dataset.DatasetNames.VOWEL,
-    ]
-    for dataset_name in datasets:
+    for dataset_name in dataset.DatasetNames:
         samples, labels = dataset.load_dataset(dataset_name)
 
-        accuracies = []
+        if dataset_name == dataset.DatasetNames.OLIVETTI:
+            # The dimensionality of the Olivetti dataset is too big. Use PCA
+            # to make the problem tractable.
+            pca = decomposition.PCA(n_components=20)
+            pca.fit(samples)
+            samples = pca.transform(samples)
+
+        weak_accuracies = []
+        boosted_accuracies = []
         for trial_idx in range(num_trials):
             (training_samples,
              training_labels,
              test_samples,
              test_labels) = dataset.split_dataset(samples=samples,
                                                   labels=labels,
-                                                  train_fraction=0.5,
+                                                  train_fraction=0.7,
                                                   balance_classes=True,
                                                   seed=trial_idx)
 
-            classifier_params = {'naive': False}
-            classifier = boost_cls.BoostClassifier.train(
+            weak_classifier = \
+                bayes_cls.BayesClassifier.train(samples=training_samples,
+                                                labels=training_labels,
+                                                naive=True,
+                                                weights=None)
+            weak_predictions = weak_classifier.classify(samples=test_samples)
+            weak_accuracy = np.mean(weak_predictions == test_labels)
+            weak_accuracies.append(weak_accuracy)
+
+            classifier_params = {'naive': True}
+            boost_classifier = boost_cls.BoostClassifier.train(
                 classifier_class=bayes_cls.BayesClassifier,
                 samples=training_samples,
                 labels=training_labels,
                 num_iters=10,
                 **classifier_params)
-            predictions = classifier.classify(samples=test_samples)
-            test_accuracy = np.mean(predictions == test_labels)
-            accuracies.append(test_accuracy)
+            boost_predictions = boost_classifier.classify(samples=test_samples)
+            boost_accuracy = np.mean(boost_predictions == test_labels)
+            boosted_accuracies.append(boost_accuracy)
 
-        mean_accuracy = np.mean(accuracies)
-        std_accuracy = np.std(accuracies)
+        mean_weak_accuracy = np.mean(weak_accuracies)
+        std_weak_accuracy = np.std(weak_accuracies)
+        mean_boosted_accuracy = np.mean(boosted_accuracies)
+        std_boosted_accuracy = np.std(boosted_accuracies)
 
         def _format_acc(mean_, std_):
             acc_str = '{:.3f} +/- {:.3f}'.format(mean_, std_)
             return acc_str
 
         pretty_table.add_row([dataset_name.value,
-                              _format_acc(mean_accuracy, std_accuracy)])
+                              _format_acc(mean_weak_accuracy,
+                                          std_weak_accuracy),
+                              _format_acc(mean_boosted_accuracy,
+                                          std_boosted_accuracy)])
 
     print()
     print('Mean accuracy on test set ({} trials)'.format(num_trials))
@@ -91,66 +118,83 @@ def assignment5p1():
 
 
 def assignment5p2():
-    dataset_name = dataset.DatasetNames.IRIS
-    samples, labels = dataset.load_dataset(dataset_name)
-    training_samples, training_labels, test_samples, test_labels = \
-        dataset.split_dataset(samples=samples,
-                              labels=labels,
-                              train_fraction=0.5,
-                              balance_classes=True,
-                              seed=0)
+    print('Assignment 5.2')
+    print('Compare the boundaries of weak and boosted classifiers.')
 
-    pca = decomposition.PCA(n_components=2)
-    pca.fit(training_samples)
-    training_samples = pca.transform(training_samples)
-    test_samples = pca.transform(test_samples)
+    for dataset_name in dataset.DatasetNames:
+        samples, labels = dataset.load_dataset(dataset_name)
+        pca = decomposition.PCA(n_components=2)
+        pca.fit(samples)
+        samples = pca.transform(samples)
 
-    classifier_params = {'naive': False}
-    classifier = boost_cls.BoostClassifier.train(
-        classifier_class=bayes_cls.BayesClassifier,
-        samples=training_samples,
-        labels=training_labels,
-        num_iters=10,
-        **classifier_params)
-    predictions = classifier.classify(samples=test_samples)
-    test_accuracy = np.mean(predictions == test_labels)
+        (training_samples,
+         training_labels,
+         test_samples,
+         test_labels) = dataset.split_dataset(samples=samples,
+                                              labels=labels,
+                                              train_fraction=0.7,
+                                              balance_classes=True,
+                                              seed=0)
 
-    # Plot the classification of the test samples.
-    fig, (ax1, ax2) = plt.subplots(1, 2)
-    plotting.plot_samples_2d(ax=ax1,
-                             samples=test_samples,
-                             labels=test_labels)
-    # plotting.plot_gaussian(ax=ax1,
-    #                        samples=test_samples,
-    #                        labels=test_labels,
-    #                        mu=classifier.mu,
-    #                        sigma=classifier.sigma)
-    ax1.legend()
-    ax1.set_title('Ground truth')
+        weak_classifier = \
+            bayes_cls.BayesClassifier.train(samples=training_samples,
+                                            labels=training_labels,
+                                            naive=True,
+                                            weights=None)
+        weak_predictions = weak_classifier.classify(samples=test_samples)
+        weak_accuracy = np.mean(weak_predictions == test_labels)
 
-    plotting.plot_samples_2d(ax=ax2,
-                             samples=test_samples,
-                             labels=predictions)
-    # plotting.plot_gaussian(ax=ax2,
-    #                        samples=test_samples,
-    #                        labels=test_predictions,
-    #                        mu=classifier.mu,
-    #                        sigma=classifier.sigma)
-    plotting.plot_boundaries(ax=ax2,
-                             classifier=classifier,
-                             grid_size=1000)
-    ax2.legend()
-    ax2.set_title('Prediction')
+        classifier_params = {'naive': True}
+        boost_classifier = boost_cls.BoostClassifier.train(
+            classifier_class=bayes_cls.BayesClassifier,
+            samples=training_samples,
+            labels=training_labels,
+            num_iters=10,
+            **classifier_params)
+        boost_predictions = boost_classifier.classify(samples=test_samples)
+        boost_accuracy = np.mean(boost_predictions == test_labels)
 
-    fig.suptitle('Assignment 3.1\n'
-                 'Dataset: {}\n'
-                 'Accuracy: {:.3f}'.format(dataset_name.value,
-                                           test_accuracy))
-    plt.show()
-    plt.close()
+        # Plot the classification of the test samples.
+        fig, (ax1, ax2, ax3) = plt.subplots(1, 3)
+        plotting.plot_samples_2d(ax=ax1,
+                                 samples=test_samples,
+                                 labels=test_labels)
+        ax1.legend()
+        ax1.set_title('Ground truth')
+
+        plotting.plot_samples_2d(ax=ax2,
+                                 samples=test_samples,
+                                 labels=weak_predictions)
+        plotting.plot_boundaries(ax=ax2,
+                                 classifier=weak_classifier,
+                                 grid_size=1000)
+        ax2.legend()
+        ax2.set_title('Weak classifier')
+
+        plotting.plot_samples_2d(ax=ax3,
+                                 samples=test_samples,
+                                 labels=boost_predictions)
+        plotting.plot_boundaries(ax=ax3,
+                                 classifier=boost_classifier,
+                                 grid_size=1000)
+        ax3.legend()
+        ax3.set_title('Boosted classifier')
+
+        fig.suptitle('Assignment 5.2\n'
+                     'Dataset: {}\n'
+                     'Weak classifier accuracy: {:.3f}\n'
+                     'Boosted classifier accuracy: {:.3f}'.format(
+            dataset_name.value, weak_accuracy, boost_accuracy))
+
+        plt.show()
+        plt.close()
 
 
 def main():
+    assignment5()
+    _separator()
+    assignment5p1()
+    _separator()
     assignment5p2()
 
 
