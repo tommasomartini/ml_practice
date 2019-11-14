@@ -1,5 +1,5 @@
-from sklearn import tree
 import numpy as np
+from sklearn import tree
 
 
 class SklearnDecisionTreeClassifierWrapper:

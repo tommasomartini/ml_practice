@@ -3,13 +3,13 @@ import numpy as np
 import seaborn as sns
 from prettytable import PrettyTable
 from sklearn import decomposition
-import boosting.decision_tree_classifier as tree_cls
 from sklearn.datasets.samples_generator import make_blobs
 
 import bayesian_learning.bayesian_classifier as bayes_cls
 import bayesian_learning.dataset as dataset
 import bayesian_learning.plotting as plotting
 import boosting.boost_classifier as boost_cls
+import boosting.decision_tree_classifier as tree_cls
 
 sns.set()
 
