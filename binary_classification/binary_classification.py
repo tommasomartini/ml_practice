@@ -98,33 +98,40 @@ def _least_squares(xs, ys):
     return params_w
 
 
-# def _perceptron(xs, ys):
-#     num_iters = 100
-#
-#     xs = np.c_[_linear_kernel(xs), np.ones(len(xs))]
-#
-#     params = np.random.randn(xs.shape[1])
-#     for iter_idx in range(num_iters):
-#         predictions = xs @ params
-#         errors = ys * predictions
-#
-#         # Find all the misclassified examples.
-#         # Only the misclassified samples contribute to the gradient.
-#         misclass_mask = errors < 0
-#         misclass_xs = np.zeros(xs.shape)
-#         misclass_xs[misclass_mask] = xs[misclass_mask]
-#
-#         dL_dW = misclass_xs.T @ ys
-#
-#         # Use the plus sign because the errors are negative,
-#         params = params + dL_dW
-#
-#     return params
+def _perceptron(xs, ys):
+    max_iterations = 1000
+
+    xs = np.c_[_linear_kernel(xs), np.ones(len(xs))]
+    N, d = xs.shape
+
+    params = np.random.randn(d)
+    iter_idx = 0
+    while True:
+        # Count how many misclassified examples:
+        scores = xs @ params
+        misclassified = (scores * ys) <= 0
+        num_misclassified = np.sum(misclassified)
+        print('{} misclassified'.format(num_misclassified))
+        if num_misclassified == 0:
+            break
+
+        # Pick the next sample.
+        idx = iter_idx % N
+        if misclassified[idx]:
+            # If it was misclassified, use it to update the weights.
+            params = params + xs[idx] * ys[idx]
+
+        iter_idx += 1
+        if iter_idx >= max_iterations:
+            raise ValueError('Impossible solution: sure that points are '
+                             'linearly separable?')
+
+    return params
 
 
 def _draw_prediction(ax, x_coords, y_coords):
-    params_w = _least_squares(x_coords, y_coords)
-    # params_w = _perceptron(x_coords, y_coords)
+    # params_w = _least_squares(x_coords, y_coords)
+    params_w = _perceptron(x_coords, y_coords)
 
     # Create a grid.
     x = np.linspace(_min_x, _max_x, 101)
@@ -134,8 +141,8 @@ def _draw_prediction(ax, x_coords, y_coords):
     xs = np.c_[np.ravel(x1), np.ravel(x2)]
 
     # Predict the lables.
-    # phis = np.c_[_linear_kernel(xs), np.ones(len(xs))]
-    phis = _polynomial_kernel(xs)
+    phis = np.c_[_linear_kernel(xs), np.ones(len(xs))]
+    # phis = _polynomial_kernel(xs)
     ys = phis @ params_w
 
     # Reshape back as a grid.
