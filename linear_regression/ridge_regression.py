@@ -71,9 +71,7 @@ def _rbf_kernel(xs, mu=0.0, sigma=1.0):
     return
 
 
-def _ridge_regression(x_coords, y_coords):
-    # Add a "1" component to each data point, effectively expanding by one unit
-    # their dimensions, so that we can account for a bias.
+def _closed_form_linear_regression(x_coords, y_coords):
     phis = _polynomial_kernel(x_coords)
     Y = np.expand_dims(np.array(y_coords), axis=1)
 
@@ -87,6 +85,34 @@ def _ridge_regression(x_coords, y_coords):
     sigma = np.sqrt(np.sum((phis @ params_w - Y) ** 2))
 
     return params_w, sigma
+
+
+def _iterative_least_squares(x_coords, y_coords):
+    lr = 0.0001
+    n_iters = 100
+    lambd = 1.0
+
+    phis = _polynomial_kernel(x_coords)
+    Y = np.expand_dims(np.array(y_coords), axis=1)
+
+    dims = phis.shape[1]
+    params_w = np.zeros((dims,1))
+
+    for iter_idx in range(n_iters):
+        dL_dW = - phis.T @ Y + (phis.T @ phis + lambd * np.eye(dims)) @ params_w
+        params_w = params_w - lr * dL_dW
+
+    sigma = np.sqrt(np.sum((phis @ params_w - Y) ** 2))
+
+    return params_w, sigma
+
+
+def _ridge_regression(x_coords, y_coords, closed_form=True):
+    if closed_form:
+        return _closed_form_linear_regression(x_coords, y_coords)
+
+    else:
+        return _iterative_least_squares(x_coords, y_coords)
 
 
 def _draw_prediction(ax, x_coords, y_coords):
