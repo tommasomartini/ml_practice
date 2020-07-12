@@ -92,9 +92,13 @@ def _polynomial_kernel(xs):
 
 
 def _least_squares(xs, ys):
-    # xs = np.c_[_linear_kernel(xs), np.ones(len(xs))]
-    xs = _polynomial_kernel(xs)
-    params_w = np.linalg.inv(xs.T @ xs) @ xs.T @ ys
+    lambd = 0
+
+    xs = np.c_[_linear_kernel(xs), np.ones(len(xs))]
+    # xs = _polynomial_kernel(xs)
+    N, d = xs.shape
+
+    params_w = np.linalg.inv(xs.T @ xs + lambd * np.eye(d)) @ xs.T @ ys
     return params_w
 
 
