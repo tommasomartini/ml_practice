@@ -115,8 +115,30 @@ def _ridge_regression(x_coords, y_coords, closed_form=True):
         return _iterative_least_squares(x_coords, y_coords)
 
 
+def _lasso(x_coords, y_coords):
+    lr = 0.01
+    n_iters = 100
+    lambd = 0.0
+    eps = 1e-8
+
+    phis = _polynomial_kernel(x_coords)
+    Y = np.expand_dims(np.array(y_coords), axis=1)
+
+    dims = phis.shape[1]
+    params_w = np.zeros((dims,1))
+
+    for iter_idx in range(n_iters):
+        dL_dW = - phis.T @ Y + phis.T @ phis @ params_w + lambd * params_w / (params_w + eps)
+        params_w = params_w - lr * dL_dW
+
+    sigma = np.sqrt(np.sum((phis @ params_w - Y) ** 2))
+
+    return params_w, sigma
+
+
 def _draw_prediction(ax, x_coords, y_coords):
-    params_w, sigma = _ridge_regression(x_coords, y_coords)
+    # params_w, sigma = _ridge_regression(x_coords, y_coords)
+    params_w, sigma = _lasso(x_coords, y_coords)
 
     # Append a 1 to each data point to account for the bias.
     xs = np.linspace(_min_x, _max_x, 1001)
