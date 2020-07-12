@@ -2,6 +2,10 @@ import numpy as np
 from matplotlib import pyplot as plt
 
 
+_min_x = 0
+_max_x = 5
+
+
 class PointDrawer:
 
     def __init__(self, pointsA, pointsB, drawing_func):
@@ -52,14 +56,24 @@ class PointDrawer:
         self._canvas.draw()
 
 
+def _polynomial_kernel(xs, degree=5):
+    xs = np.array(xs)
+    phis = np.zeros((len(xs), degree + 1))
+    for idx in range(degree + 1):
+        phis[:, idx] = xs ** idx
+    return phis
+
+
 def _ridge_regression(x_coords, y_coords):
     # Add a "1" component to each data point, effectively expanding by one unit
     # their dimensions, so that we can account for a bias.
-    X = np.c_[x_coords, np.ones((len(x_coords,)))]
+    X = _polynomial_kernel(x_coords)
     Y = np.expand_dims(np.array(y_coords), axis=1)
 
-    lambd = 0.1
-    params_w = np.linalg.inv(X.T @ X + lambd * np.eye(2)) @ X.T @ Y
+    dims = X.shape[1]
+
+    lambd = 1.0
+    params_w = np.linalg.inv(X.T @ X + lambd * np.eye(dims)) @ X.T @ Y
 
     return params_w
 
@@ -68,9 +82,9 @@ def _draw_prediction(ax, x_coords, y_coords):
     params_w = _ridge_regression(x_coords, y_coords)
 
     # Append a 1 to each data point to account for the bias.
-    xs = np.linspace(0, 1.0, 21)
-    xs = np.c_[xs, np.ones((len(xs,)))]
-    ys = xs @ params_w
+    xs = np.linspace(_min_x, _max_x, 21)
+    phis = _polynomial_kernel(xs)
+    ys = phis @ params_w
     ax.plot(xs, ys)
 
 
@@ -81,7 +95,7 @@ def main():
                  'Left-click for red dots,\n'
                  'Right-click for blue crosses')
 
-    ax.set_xlim([0, 1])
+    ax.set_xlim([_min_x, _max_x])
     ax.set_ylim([0, 1])
 
     red_dots, = ax.plot([], [], linestyle='none', marker='o', color='r')
