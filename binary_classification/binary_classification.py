@@ -133,9 +133,50 @@ def _perceptron(xs, ys):
     return params
 
 
+def _logistic_func(xs):
+    return 1 / (1 + np.exp(-xs))
+
+
+def _grad_logistic_func(xs):
+    return _logistic_func(-xs) * _logistic_func(xs)
+
+
+def _logistic_regression(xs, ys):
+    lr = 0.1
+    num_iterations = 100
+
+    xs = np.c_[_linear_kernel(xs), np.ones(len(xs))]
+    N, d = xs.shape
+
+    # Logistic regression works best if the labels are {0, 1}
+    # rather than {-1, 1}.
+    ys = np.array(0.5 * np.array(ys) + 1, dtype=int)
+
+    params = np.random.randn(d,)
+    for iter_idx in range(num_iterations):
+        scores = xs @ params
+        predictions = _logistic_func(scores)
+
+        # Logistic loss.
+        errors = - ys * np.log(predictions) - (1 - ys) * np.log(1 - predictions)
+        loss = np.mean(errors, axis=0)
+        print('Iter {}, loss {}'.format(iter_idx, loss))
+
+        if loss < 1e-6:
+            break
+
+        # Compute the gradient.
+        dL_dW = xs.T @ (predictions - ys)
+
+        params = params - lr * dL_dW
+
+    return params
+
+
 def _draw_prediction(ax, x_coords, y_coords):
     # params_w = _least_squares(x_coords, y_coords)
-    params_w = _perceptron(x_coords, y_coords)
+    # params_w = _perceptron(x_coords, y_coords)
+    params_w = _logistic_regression(x_coords, y_coords)
 
     # Create a grid.
     x = np.linspace(_min_x, _max_x, 101)
@@ -149,12 +190,14 @@ def _draw_prediction(ax, x_coords, y_coords):
     # phis = _polynomial_kernel(xs)
     ys = phis @ params_w
 
+    # Convert to {0, 1} for logistic regression.
+    ys = 2 * _logistic_func(ys) - 1
+
     # Reshape back as a grid.
     ys = ys.reshape(x1.shape)
 
     # Draw the contour regions.
     ax.contourf(x, x, ys,
-                # cmap=cm.get_cmap('bwr'),
                 levels=(-np.inf, 0, np.inf),
                 colors=('b', 'r'),
                 alpha=0.2)
