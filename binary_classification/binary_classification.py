@@ -74,39 +74,57 @@ def _linear_kernel(xs):
     return np.array(xs)
 
 
+def _polynomial_kernel(xs):
+    xs = np.array(xs)
+    x1 = xs[:, 0]
+    x2 = xs[:, 1]
+
+    phis = np.zeros((len(xs), 6))
+
+    phis[:, 0] = np.ones((len(xs),))
+    phis[:, 1] = x1
+    phis[:, 2] = x2
+    phis[:, 3] = x1 * x2
+    phis[:, 4] = x1 ** 2
+    phis[:, 5] = x2 ** 2
+
+    return phis
+
+
 def _least_squares(xs, ys):
-    xs = np.c_[_linear_kernel(xs), np.ones(len(xs))]
+    # xs = np.c_[_linear_kernel(xs), np.ones(len(xs))]
+    xs = _polynomial_kernel(xs)
     params_w = np.linalg.inv(xs.T @ xs) @ xs.T @ ys
     return params_w
 
 
-def _perceptron(xs, ys):
-    num_iters = 100
-
-    xs = np.c_[_linear_kernel(xs), np.ones(len(xs))]
-
-    params = np.random.randn(xs.shape[1])
-    for iter_idx in range(num_iters):
-        predictions = xs @ params
-        errors = ys * predictions
-
-        # Find all the misclassified examples.
-        # Only the misclassified samples contribute to the gradient.
-        misclass_mask = errors < 0
-        misclass_xs = np.zeros(xs.shape)
-        misclass_xs[misclass_mask] = xs[misclass_mask]
-
-        dL_dW = misclass_xs.T @ ys
-
-        # Use the plus sign because the errors are negative,
-        params = params + dL_dW
-
-    return params
+# def _perceptron(xs, ys):
+#     num_iters = 100
+#
+#     xs = np.c_[_linear_kernel(xs), np.ones(len(xs))]
+#
+#     params = np.random.randn(xs.shape[1])
+#     for iter_idx in range(num_iters):
+#         predictions = xs @ params
+#         errors = ys * predictions
+#
+#         # Find all the misclassified examples.
+#         # Only the misclassified samples contribute to the gradient.
+#         misclass_mask = errors < 0
+#         misclass_xs = np.zeros(xs.shape)
+#         misclass_xs[misclass_mask] = xs[misclass_mask]
+#
+#         dL_dW = misclass_xs.T @ ys
+#
+#         # Use the plus sign because the errors are negative,
+#         params = params + dL_dW
+#
+#     return params
 
 
 def _draw_prediction(ax, x_coords, y_coords):
-    # params_w = _least_squares(x_coords, y_coords)
-    params_w = _perceptron(x_coords, y_coords)
+    params_w = _least_squares(x_coords, y_coords)
+    # params_w = _perceptron(x_coords, y_coords)
 
     # Create a grid.
     x = np.linspace(_min_x, _max_x, 101)
@@ -116,18 +134,25 @@ def _draw_prediction(ax, x_coords, y_coords):
     xs = np.c_[np.ravel(x1), np.ravel(x2)]
 
     # Predict the lables.
-    phis = np.c_[_linear_kernel(xs), np.ones(len(xs))]
+    # phis = np.c_[_linear_kernel(xs), np.ones(len(xs))]
+    phis = _polynomial_kernel(xs)
     ys = phis @ params_w
 
     # Reshape back as a grid.
     ys = ys.reshape(x1.shape)
 
-    # Draw the contour plot.
+    # Draw the contour regions.
     ax.contourf(x, x, ys,
-                cmap=cm.get_cmap('bwr'),
-                levels=20,
-                # levels=(-np.inf, -1, 1, np.inf),
+                # cmap=cm.get_cmap('bwr'),
+                levels=(-np.inf, 0, np.inf),
+                colors=('b', 'r'),
                 alpha=0.2)
+
+    # Draw the boundary.
+    ax.contour(x, x, ys,
+               levels=(0,),
+               colors=('k',),
+               linestyles=('solid',))
 
 
 def main():
