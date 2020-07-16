@@ -17,26 +17,6 @@ _max_y = 2
 _lambdas = [0.0, 0.1, 1.0, 10.0]
 
 
-# def _iterative_least_squares(x_coords, y_coords):
-#     lr = 0.0001
-#     n_iters = 100
-#     lambd = 1.0
-#
-#     phis = _polynomial_kernel(x_coords)
-#     Y = np.expand_dims(np.array(y_coords), axis=1)
-#
-#     dims = phis.shape[1]
-#     params_w = np.zeros((dims,1))
-#
-#     for iter_idx in range(n_iters):
-#         dL_dW = - phis.T @ Y + (phis.T @ phis + lambd * np.eye(dims)) @ params_w
-#         params_w = params_w - lr * dL_dW
-#
-#     sigma = np.sqrt(np.sum((phis @ params_w - Y) ** 2))
-#
-#     return params_w, sigma
-
-
 def _ridge_regression(xs, ys, lambd):
     # Append a 1 to each data point to learn the bias.
     xs = np.c_[xs, np.ones((len(xs),))]
