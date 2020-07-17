@@ -36,7 +36,7 @@ def _draw_prediction(ax, xs, ys):
     zs = np.linspace(_min_x, _max_x, 1001)
 
     # Append a 1 to each data point to account for the bias.
-    zzs = np.expand_dims(np.linspace(_min_x, _max_x, 1001), axis=1)
+    zzs = np.expand_dims(zs, axis=1)
     zzs = np.c_[zzs, np.ones(len(zzs), )]
 
     for lambda_reg in _lambdas:

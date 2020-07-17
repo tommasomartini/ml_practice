@@ -9,7 +9,7 @@ sns.set()
 _EPS = 1e-8
 
 
-_min_x = 2
+_min_x = - 5
 _max_x = 5
 
 _min_y = - 2
@@ -18,7 +18,7 @@ _max_y = 2
 # Regularization parameters.
 _lambdas = [0.0, 0.1, 1.0, 10.0, 100.0]
 
-_lr = 0.001
+_lr = 0.01
 _n_iters = 1000
 
 
@@ -47,7 +47,7 @@ def _draw_prediction(ax, xs, ys):
     zs = np.linspace(_min_x, _max_x, 1001)
 
     # Append a 1 to each data point to account for the bias.
-    zzs = np.expand_dims(np.linspace(_min_x, _max_x, 1001), axis=1)
+    zzs = np.expand_dims(zs, axis=1)
     zzs = np.c_[zzs, np.ones(len(zzs), )]
 
     for lambda_reg in _lambdas:
