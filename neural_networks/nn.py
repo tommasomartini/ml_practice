@@ -1,11 +1,9 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
-from mpl_toolkits.mplot3d import Axes3D
-from sklearn.decomposition import PCA
-import neural_networks.activations as activations
 
 import common.point_drawer as drawer
+import neural_networks.activations as activations
 
 sns.set()
 np.random.seed(2)
@@ -13,17 +11,20 @@ np.random.seed(2)
 _min_x = -5
 _max_x = 5
 
-_min_y = - 2
+_min_y = 0
 _max_y = 2
 
 
-_learning_rate = 0.01
+_learning_rate = 0.001
+_weight_decay = 0.1
 _num_epochs = 1000
-_input_dims = 2     # input is 2 dimensional
+_batch_size = -1
+
+_input_dims = 1     # input is 2 dimensional
 _output_dims = 1
 
 # The size of each hidden layer.
-_layers = [3]
+_hidden_layers = [10, 10, 10]
 
 
 class NeuralNetwork:
@@ -33,16 +34,10 @@ class NeuralNetwork:
         self._hidden_layers = hidden_layers + [_output_dims]
         self._activation = activation
 
+        self._reset_state()
+
         self._weights = []
         self._biases = []
-
-        # Store the gradients of the parameters.
-        self._weights_grads = []
-        self._biases_grads = []
-
-        # Store the intermediate features.
-        self._features_before_act = []
-        self._features_after_act = []
 
         num_inputs = _input_dims
         for layer_idx, num_neurons in enumerate(self._hidden_layers):
@@ -54,7 +49,18 @@ class NeuralNetwork:
 
             num_inputs = num_neurons
 
-    def _clear(self):
+    def initialize(self):
+        # Initialize the network using Xavier initialization.
+        for layer_idx in range(len(self._hidden_layers)):
+            shape_W = self._weights[layer_idx].shape
+            num_inputs, num_outputs = shape_W
+            params_W = (1 / np.sqrt(num_inputs)) * np.random.randn(*shape_W)
+            self._weights[layer_idx] = params_W
+
+            params_B = (1 / np.sqrt(num_inputs)) * np.random.randn(num_outputs)
+            self._biases[layer_idx] = params_B
+
+    def _reset_state(self):
         # Store the gradients of the parameters.
         self._weights_grads = [None] * len(self._hidden_layers)
         self._biases_grads = [None] * len(self._hidden_layers)
@@ -66,7 +72,7 @@ class NeuralNetwork:
     def fw(self, x):
         # Performs a forward pass.
         # x has shape (<batch size>, D)
-        self._clear()
+        self._reset_state()
         self._features_after_act.append(x)
         for W, b in zip(self._weights, self._biases):
             x = x @ W + b
@@ -201,36 +207,57 @@ class NeuralNetwork:
         return self._flatten(self._weights_grads, self._biases_grads)
 
 
-def optimize(nn):
-    pass
-
-
-def _draw_prediction(ax, xsA, xsB):
-    zs = np.expand_dims(np.linspace(_min_x, _max_x, 1001), axis=1)
-
-    nn = NeuralNetwork(hidden_layers=[3],
+def _draw_prediction(ax, xs, ys):
+    nn = NeuralNetwork(hidden_layers=_hidden_layers,
                        activation=activations.ReLU())
+    nn.initialize()
 
-    batch_size = 10
-    input = np.random.randn(batch_size, _input_dims)
-    labels = np.random.randn(batch_size, _output_dims)
-    output = nn.fw(input)
+    N = xs.shape[0]
+    batch_size = _batch_size if _batch_size > 0 else len(xs)
+    batches_per_epoch = int(np.floor(N / batch_size))
+    for epoch_idx in range(_num_epochs):
+        all_indices = list(range(N))
+        np.random.shuffle(all_indices)
+        for batch_idx in range(batches_per_epoch):
+            batch_start = batch_idx * batch_size
+            batch_end = (batch_idx + 1) * batch_size
+            batch_indices = all_indices[batch_start: batch_end]
+            batch_xs = xs[batch_indices]
+            batch_ys = ys[batch_indices]
 
-    residuals = labels - output
-    loss = np.mean(residuals ** 2)
+            prediction = nn.fw(batch_xs)
+            residuals = batch_ys - prediction
 
-    dL_dResiduals = 2 * residuals
-    dResiduals_dOutput = - np.ones((batch_size, 1))
-    dL_dOuput = dL_dResiduals * dResiduals_dOutput
+            # Mean Square Error.
+            training_loss = np.mean(residuals ** 2)
+            print('Epoch {}, batch {}, loss: {:.3f}'.format(epoch_idx,
+                                                            batch_idx,
+                                                            training_loss))
 
-    nn.grad(dL_dOuput)
+            dL_dResiduals = 2 * residuals
+            dResiduals_dOutput = - np.ones((batch_size, 1))
+            dL_dOuput = dL_dResiduals * dResiduals_dOutput
 
-    gg = nn.gradients
-    nn.update(gg)
-    print(nn.gradients)
+            # Compute the gradients.
+            nn.grad(dL_dOuput)
+            grads = nn.gradients
 
-    # # Plot the mean.
-    # ax.plot(zs, ys_hat, label='lambda={:.1f}'.format(lambda_reg))
+            if np.linalg.norm(grads) < 1e-4:
+                print(' Warning: vanishing gradient')
+
+            params = nn.parameters
+
+            # Apply weight decay.
+            grads += _weight_decay * params
+
+            new_params = params - _learning_rate * grads
+            nn.update(new_params)
+
+    zs = np.expand_dims(np.linspace(_min_x, _max_x, 1001), axis=1)
+    ys_hat = nn.fw(zs)
+
+    # Plot the mean.
+    ax.plot(zs, ys_hat)
 
     # plt.legend()
 
