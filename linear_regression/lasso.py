@@ -2,7 +2,7 @@ import numpy as np
 import seaborn as sns
 from matplotlib import pyplot as plt
 
-import linear_regression.point_drawer as drawer
+import common.point_drawer as drawer
 
 sns.set()
 
