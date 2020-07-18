@@ -13,8 +13,8 @@ np.random.seed(2)
 _min_x = - 5
 _max_x = 5
 
-_learning_rate = 0.1
-_weight_decay = 0.0
+_learning_rate = 0.01
+_weight_decay = 0.001
 _num_epochs = 1000
 _batch_size = -1
 
@@ -22,12 +22,43 @@ _input_dims = 2
 _output_dims = 1
 
 # The size of each hidden layer.
-_hidden_layers = [10, 10, 10, 10, 10, 10]
+_hidden_layers = [10] * 10
 
 
-def _draw_prediction(ax, xsA, xsB):
+def _color(ax, x, ys_hat):
+    # Draw the contour regions.
+    contourf_res = ax.contourf(x, x, ys_hat,
+                               levels=(0, 0.5, 1),
+                               colors=('b', 'r'),
+                               alpha=0.2)
+
+    # Draw the boundary.
+    contour_res = ax.contour(x, x, ys_hat,
+                             levels=20,
+                             colors=('k',),
+                             linestyles=('solid',))
+
+    return contourf_res, contour_res
+
+
+def _draw_prediction(ax, canvas, xsA, xsB):
     ys = np.expand_dims(np.r_[[1] * len(xsA), [0] * len(xsB)], axis=1)
     xs = np.r_[xsA, xsB]
+
+    # Constants to normalize the data.
+    mean_xs = np.mean(xs, axis=0)
+    std_xs = np.std(xs, axis=0)
+    xs = (xs - mean_xs) / std_xs
+
+    # Create a grid.
+    x = np.linspace(_min_x, _max_x, 101)
+    x1, x2 = np.meshgrid(x, x)
+
+    # Flatten the coordinates.
+    zs = np.c_[np.ravel(x1), np.ravel(x2)]
+    zs_normalized = (zs - mean_xs) / std_xs
+
+    contourf_res, contour_res = None, None
 
     nn = model.NeuralNetwork(hidden_layers=_hidden_layers,
                              input_dims=_input_dims,
@@ -36,11 +67,6 @@ def _draw_prediction(ax, xsA, xsB):
     nn.initialize()
 
     sgd = optimizers.SGD()
-
-    # Constants to normalize the data.
-    mean_xs = np.mean(xs, axis=0)
-    std_xs = np.std(xs, axis=0)
-    xs = (xs - mean_xs) / std_xs
 
     N = xs.shape[0]
     batch_size = _batch_size if _batch_size > 0 else len(xs)
@@ -97,40 +123,55 @@ def _draw_prediction(ax, xsA, xsB):
             nn.update(new_params)
 
             if batch_idx == 0:
+                if epoch_idx % 10 == 0:
+                    if contourf_res is not None:
+                        for coll in contourf_res.collections:
+                            coll.remove()
+
+                    if contour_res is not None:
+                        for coll in contour_res.collections:
+                            coll.remove()
+
+                    ys_hat = nn.fw(zs_normalized)
+                    ys_hat = activations.Logistic.fw(ys_hat)
+                    ys_hat = ys_hat.reshape(x1.shape)
+                    contourf_res, contour_res = _color(ax, x, ys_hat)
+                    canvas.draw()
+
                 training_losses.append(training_loss)
                 parameters_mean_norms.append(np.mean(params))
                 parameters_std_norms.append(np.std(params))
                 gradients_mean_norms.append(np.mean(grads))
                 gradients_std_norms.append(np.std(grads))
 
-    # Create a grid.
-    x = np.linspace(_min_x, _max_x, 101)
-    x1, x2 = np.meshgrid(x, x)
-
-    # Flatten the coordinates.
-    zs = np.c_[np.ravel(x1), np.ravel(x2)]
-    zs_normalized = (zs - mean_xs) / std_xs
-
-    # Predict for every point in the grid.
-    ys_hat = nn.fw(zs_normalized)
-
-    # Convert to [0, 1] for logistic regression.
-    ys_hat = activations.Logistic.fw(ys_hat)
-
-    # Reshape back as a grid.
-    ys_hat = ys_hat.reshape(x1.shape)
-
-    # Draw the contour regions.
-    ax.contourf(x, x, ys_hat,
-                levels=(0, 0.5, 1),
-                colors=('b', 'r'),
-                alpha=0.2)
-
-    # Draw the boundary.
-    ax.contour(x, x, ys_hat,
-               levels=(0.5,),
-               colors=('k',),
-               linestyles=('solid',))
+    # # Create a grid.
+    # x = np.linspace(_min_x, _max_x, 101)
+    # x1, x2 = np.meshgrid(x, x)
+    #
+    # # Flatten the coordinates.
+    # zs = np.c_[np.ravel(x1), np.ravel(x2)]
+    # zs_normalized = (zs - mean_xs) / std_xs
+    #
+    # # Predict for every point in the grid.
+    # ys_hat = nn.fw(zs_normalized)
+    #
+    # # Convert to [0, 1] for logistic regression.
+    # ys_hat = activations.Logistic.fw(ys_hat)
+    #
+    # # Reshape back as a grid.
+    # ys_hat = ys_hat.reshape(x1.shape)
+    #
+    # # Draw the contour regions.
+    # ax.contourf(x, x, ys_hat,
+    #             levels=(0, 0.5, 1),
+    #             colors=('b', 'r'),
+    #             alpha=0.2)
+    #
+    # # Draw the boundary.
+    # ax.contour(x, x, ys_hat,
+    #            levels=(0.5,),
+    #            colors=('k',),
+    #            linestyles=('solid',))
 
     print('{} parameters'.format(nn.size))
 

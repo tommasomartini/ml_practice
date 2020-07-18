@@ -92,7 +92,7 @@ class PointDrawer2D:
 
             xsA = np.c_[self._xA, self._yA]
             xsB = np.c_[self._xB, self._yB]
-            self._drawing_func(self._ax, xsA, xsB)
+            self._drawing_func(self._ax, self._canvas, xsA, xsB)
 
         elif event.name == 'button_press_event':
             if event.inaxes != self._pointsA.axes:
