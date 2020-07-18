@@ -3,7 +3,7 @@ import numpy as np
 import seaborn as sns
 
 import common.point_drawer as drawer
-import neural_networks.activations as activations
+import artificial_neural_networks.activations as activations
 
 sns.set()
 np.random.seed(2)
