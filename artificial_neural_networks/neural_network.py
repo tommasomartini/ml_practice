@@ -5,7 +5,8 @@ class NeuralNetwork:
 
     def __init__(self, hidden_layers, input_dims, output_dims, activation):
         # Add the output layer.
-        self._hidden_layers = hidden_layers + [output_dims]
+        self._hidden_layers = \
+            list(filter(lambda x: x > 0, hidden_layers)) + [output_dims]
         self._activation = activation
 
         self._reset_state()
