@@ -17,8 +17,8 @@ _min_y = - 2
 _max_y = 2
 
 
-_learning_rate = 0.01
-_weight_decay = 0.0
+_learning_rate = 0.005
+_weight_decay = 0.1
 _num_epochs = 1000
 _batch_size = -1
 
@@ -26,14 +26,14 @@ _input_dims = 1
 _output_dims = 1
 
 # The size of each hidden layer.
-_hidden_layers = [3, 3, 3, 3]
+_hidden_layers = [5, 5, 5, 5]
 
 
 def _draw_prediction(ax, xs, ys):
     nn = model.NeuralNetwork(hidden_layers=_hidden_layers,
                              input_dims=_input_dims,
                              output_dims=_output_dims,
-                             activation=activations.Tanh())
+                             activation=activations.ReLU())
     nn.initialize()
 
     sgd = optimizers.SGD()
@@ -103,20 +103,27 @@ def _draw_prediction(ax, xs, ys):
     # Plot the mean.
     ax.plot(zs, ys_hat)
 
-    plt.figure()
-    plt.plot(range(len(training_losses)), training_losses)
-    plt.xlabel('Epochs')
-    plt.title('Training loss')
+    fig, ax1 = plt.subplots()
 
-    plt.figure()
-    plt.plot(range(len(parameters_norms)), parameters_norms)
-    plt.xlabel('Epochs')
-    plt.title('Parameters norm')
+    ax1.set_xlabel('Epochs')
+    ax1.set_ylabel('Training loss')
+    ax1.tick_params(axis='y')
 
-    plt.figure()
-    plt.plot(range(len(gradients_norms)), gradients_norms)
-    plt.xlabel('Epochs')
-    plt.title('Gradients norm')
+    # Instantiate a second axes that shares the same x-axis.
+    ax2 = ax1.twinx()
+    ax2.set_ylabel('Norms')
+    ax2.tick_params(axis='y')
+
+    ax1.plot(range(len(training_losses)), training_losses, label='Training loss')
+    ax2.plot(range(len(parameters_norms)), parameters_norms,
+             label='Parameters',  linestyle=':')
+    ax2.plot(range(len(gradients_norms)), gradients_norms,
+             label='Gradients', linestyle='--')
+
+    fig.legend()
+
+    fig.tight_layout()  # otherwise the right y-label is slightly clipped
+
     plt.show()
 
 
