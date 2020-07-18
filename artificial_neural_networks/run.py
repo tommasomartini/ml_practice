@@ -10,15 +10,15 @@ import artificial_neural_networks.optimizers as optimizers
 sns.set()
 np.random.seed(2)
 
-_min_x = 0
+_min_x = -1
 _max_x = 1
 
 _min_y = - 2
 _max_y = 2
 
 
-_learning_rate = 0.005
-_weight_decay = 0.1
+_learning_rate = 0.1
+_weight_decay = 0.0001
 _num_epochs = 1000
 _batch_size = -1
 
@@ -26,14 +26,14 @@ _input_dims = 1
 _output_dims = 1
 
 # The size of each hidden layer.
-_hidden_layers = [5, 5, 5, 5]
+_hidden_layers = [10, 10, 10, 10, 10, 10]
 
 
 def _draw_prediction(ax, xs, ys):
     nn = model.NeuralNetwork(hidden_layers=_hidden_layers,
                              input_dims=_input_dims,
                              output_dims=_output_dims,
-                             activation=activations.ReLU())
+                             activation=activations.LeakyReLU())
     nn.initialize()
 
     sgd = optimizers.SGD()
@@ -46,8 +46,10 @@ def _draw_prediction(ax, xs, ys):
     batch_size = _batch_size if _batch_size > 0 else len(xs)
     batches_per_epoch = int(np.floor(N / batch_size))
     training_losses = []
-    parameters_norms = []
-    gradients_norms = []
+    parameters_mean_norms = []
+    parameters_std_norms = []
+    gradients_mean_norms = []
+    gradients_std_norms = []
     for epoch_idx in range(_num_epochs):
         all_indices = list(range(N))
         np.random.shuffle(all_indices)
@@ -79,7 +81,7 @@ def _draw_prediction(ax, xs, ys):
             grads = nn.gradients
 
             if np.linalg.norm(grads) < 1e-4:
-                print(' Warning: vanishing gradient')
+                print(' Warning: vanishing gradient: {}'.format(np.linalg.norm(grads)))
 
             params = nn.parameters
 
@@ -93,12 +95,16 @@ def _draw_prediction(ax, xs, ys):
 
             if batch_idx == 0:
                 training_losses.append(training_loss)
-                parameters_norms.append(np.linalg.norm(params))
-                gradients_norms.append(np.linalg.norm(grads))
+                parameters_mean_norms.append(np.mean(params))
+                parameters_std_norms.append(np.std(params))
+                gradients_mean_norms.append(np.mean(grads))
+                gradients_std_norms.append(np.std(grads))
 
     zs = np.expand_dims(np.linspace(_min_x, _max_x, 1001), axis=1)
     zs_normalized = (zs - center_x) / spread_x
     ys_hat = nn.fw(zs_normalized)
+
+    print('{} parameters'.format(nn.size))
 
     # Plot the mean.
     ax.plot(zs, ys_hat)
@@ -114,11 +120,27 @@ def _draw_prediction(ax, xs, ys):
     ax2.set_ylabel('Norms')
     ax2.tick_params(axis='y')
 
-    ax1.plot(range(len(training_losses)), training_losses, label='Training loss')
-    ax2.plot(range(len(parameters_norms)), parameters_norms,
-             label='Parameters',  linestyle=':')
-    ax2.plot(range(len(gradients_norms)), gradients_norms,
-             label='Gradients', linestyle='--')
+    # Plot the training loss.
+    ax1.plot(range(len(training_losses)), training_losses,
+             label='Training loss', color='k')
+
+    # Plot the parameters spread.
+    ax2.plot(range(len(parameters_mean_norms)), parameters_mean_norms,
+             label='Parameters',  linestyle=':', color='g')
+    ax2.fill_between(range(len(parameters_mean_norms)),
+                     np.array(parameters_mean_norms) - np.array(parameters_std_norms),
+                     np.array(parameters_mean_norms) + np.array(parameters_std_norms),
+                     color='g', alpha=0.4)
+
+    # Plot the gradients spread.
+    ax2.plot(range(len(gradients_mean_norms)), gradients_mean_norms,
+             label='Gradients', linestyle='--', color='r')
+    ax2.fill_between(range(len(gradients_mean_norms)),
+                     np.array(gradients_mean_norms) - np.array(
+                         gradients_std_norms),
+                     np.array(gradients_mean_norms) + np.array(
+                         gradients_std_norms),
+                     color='r', alpha=0.4)
 
     fig.legend()
 
