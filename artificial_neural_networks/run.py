@@ -5,6 +5,7 @@ import seaborn as sns
 import artificial_neural_networks.activations as activations
 import artificial_neural_networks.neural_network as model
 import common.point_drawer as drawer
+import artificial_neural_networks.optimizers as optimizers
 
 sns.set()
 np.random.seed(2)
@@ -17,11 +18,11 @@ _max_y = 2
 
 
 _learning_rate = 0.01
-_weight_decay = 0.1
+_weight_decay = 0.0001
 _num_epochs = 1000
 _batch_size = -1
 
-_input_dims = 1     # input is 2 dimensional
+_input_dims = 1
 _output_dims = 1
 
 # The size of each hidden layer.
@@ -34,6 +35,8 @@ def _draw_prediction(ax, xs, ys):
                              _output_dims=_output_dims,
                              activation=activations.ReLU())
     nn.initialize()
+
+    sgd = optimizers.SGD()
 
     N = xs.shape[0]
     batch_size = _batch_size if _batch_size > 0 else len(xs)
@@ -73,7 +76,9 @@ def _draw_prediction(ax, xs, ys):
             # Apply weight decay.
             grads += _weight_decay * params
 
-            new_params = params - _learning_rate * grads
+            new_params = sgd.update(parameters=params,
+                                    gradients=grads,
+                                    learning_rate=_learning_rate)
             nn.update(new_params)
 
     zs = np.expand_dims(np.linspace(_min_x, _max_x, 1001), axis=1)
