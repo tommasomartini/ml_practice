@@ -9,7 +9,7 @@ class ReLU:
 
     @staticmethod
     def grad(x):
-        return (x > 0).astype(float)
+        return (x >= 0).astype(float)
 
 
 class Logistic:
@@ -20,4 +20,4 @@ class Logistic:
 
     @staticmethod
     def grad(x):
-        return np.exp(x) / (1 + np.exp(x)) ** 2
+        return Logistic.fw(x) * Logistic.fw(-x)
