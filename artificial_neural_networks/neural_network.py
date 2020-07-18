@@ -32,7 +32,7 @@ class NeuralNetwork:
             params_W = (2 / np.sqrt(num_inputs)) * np.random.randn(*shape_W)
             self._weights[layer_idx] = params_W
 
-            params_B = (2 / np.sqrt(num_inputs)) * np.random.randn(num_outputs)
+            params_B = np.zeros((num_outputs,))
             self._biases[layer_idx] = params_B
 
     def _reset_state(self):
