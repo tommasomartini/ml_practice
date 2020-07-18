@@ -3,9 +3,9 @@ import numpy as np
 
 class NeuralNetwork:
 
-    def __init__(self, hidden_layers, _input_dims, _output_dims, activation):
+    def __init__(self, hidden_layers, input_dims, output_dims, activation):
         # Add the output layer.
-        self._hidden_layers = hidden_layers + [_output_dims]
+        self._hidden_layers = hidden_layers + [output_dims]
         self._activation = activation
 
         self._reset_state()
@@ -13,25 +13,25 @@ class NeuralNetwork:
         self._weights = []
         self._biases = []
 
-        _input_dims = _input_dims
+        input_dims = input_dims
         for layer_idx, num_neurons in enumerate(self._hidden_layers):
-            layer_weights = np.zeros((_input_dims, num_neurons))
+            layer_weights = np.zeros((input_dims, num_neurons))
             layer_biases = np.zeros((num_neurons,))
 
             self._weights.append(layer_weights)
             self._biases.append(layer_biases)
 
-            _input_dims = num_neurons
+            input_dims = num_neurons
 
     def initialize(self):
-        # Initialize the network using Xavier initialization.
+        # Initialize the network using a "He normal" initialization.
         for layer_idx in range(len(self._hidden_layers)):
             shape_W = self._weights[layer_idx].shape
             num_inputs, num_outputs = shape_W
-            params_W = (1 / np.sqrt(num_inputs)) * np.random.randn(*shape_W)
+            params_W = (2 / np.sqrt(num_inputs)) * np.random.randn(*shape_W)
             self._weights[layer_idx] = params_W
 
-            params_B = (1 / np.sqrt(num_inputs)) * np.random.randn(num_outputs)
+            params_B = (2 / np.sqrt(num_inputs)) * np.random.randn(num_outputs)
             self._biases[layer_idx] = params_B
 
     def _reset_state(self):
@@ -55,7 +55,10 @@ class NeuralNetwork:
             x = self._activation.fw(x)
             self._features_after_act.append(x)
 
-        return x
+        # We do not want to apply the activation after the last layer.
+        # Undo the non-linearity.
+        self._features_after_act[-1] = self._features_before_act[-1]
+        return self._features_before_act[-1]
 
     def grad(self, loss_grad):
         """Performs a backpropagation pass.
