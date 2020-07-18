@@ -4,13 +4,13 @@ import seaborn as sns
 
 import artificial_neural_networks.activations as activations
 import artificial_neural_networks.neural_network as model
-import common.point_drawer as drawer
 import artificial_neural_networks.optimizers as optimizers
+import common.point_drawer as drawer
 
 sns.set()
 np.random.seed(2)
 
-_min_x = -1
+_min_x = 0.5
 _max_x = 1
 
 _min_y = - 2
@@ -18,7 +18,7 @@ _max_y = 2
 
 
 _learning_rate = 0.1
-_weight_decay = 0.0001
+_weight_decay = 0.0
 _num_epochs = 1000
 _batch_size = -1
 
