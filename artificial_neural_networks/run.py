@@ -10,15 +10,15 @@ import artificial_neural_networks.optimizers as optimizers
 sns.set()
 np.random.seed(2)
 
-_min_x = -5
-_max_x = 5
+_min_x = 0
+_max_x = 1
 
-_min_y = 0
+_min_y = - 2
 _max_y = 2
 
 
 _learning_rate = 0.01
-_weight_decay = 0.0001
+_weight_decay = 0.0
 _num_epochs = 1000
 _batch_size = -1
 
@@ -26,21 +26,28 @@ _input_dims = 1
 _output_dims = 1
 
 # The size of each hidden layer.
-_hidden_layers = [10, 10, 10]
+_hidden_layers = [3, 3, 3, 3]
 
 
 def _draw_prediction(ax, xs, ys):
     nn = model.NeuralNetwork(hidden_layers=_hidden_layers,
-                             _input_dims=_input_dims,
-                             _output_dims=_output_dims,
-                             activation=activations.ReLU())
+                             input_dims=_input_dims,
+                             output_dims=_output_dims,
+                             activation=activations.Tanh())
     nn.initialize()
 
     sgd = optimizers.SGD()
 
+    # Constants to normalize the data.
+    center_x = (_min_x + _max_x) / 2
+    spread_x = (_max_x - _min_y) / 2
+
     N = xs.shape[0]
     batch_size = _batch_size if _batch_size > 0 else len(xs)
     batches_per_epoch = int(np.floor(N / batch_size))
+    training_losses = []
+    parameters_norms = []
+    gradients_norms = []
     for epoch_idx in range(_num_epochs):
         all_indices = list(range(N))
         np.random.shuffle(all_indices)
@@ -50,6 +57,9 @@ def _draw_prediction(ax, xs, ys):
             batch_indices = all_indices[batch_start: batch_end]
             batch_xs = xs[batch_indices]
             batch_ys = ys[batch_indices]
+
+            # Normalize the data to be between -1 and 1.
+            batch_xs = (batch_xs - center_x) / spread_x
 
             prediction = nn.fw(batch_xs)
             residuals = batch_ys - prediction
@@ -81,13 +91,33 @@ def _draw_prediction(ax, xs, ys):
                                     learning_rate=_learning_rate)
             nn.update(new_params)
 
+            if batch_idx == 0:
+                training_losses.append(training_loss)
+                parameters_norms.append(np.linalg.norm(params))
+                gradients_norms.append(np.linalg.norm(grads))
+
     zs = np.expand_dims(np.linspace(_min_x, _max_x, 1001), axis=1)
-    ys_hat = nn.fw(zs)
+    zs_normalized = (zs - center_x) / spread_x
+    ys_hat = nn.fw(zs_normalized)
 
     # Plot the mean.
     ax.plot(zs, ys_hat)
 
-    # plt.legend()
+    plt.figure()
+    plt.plot(range(len(training_losses)), training_losses)
+    plt.xlabel('Epochs')
+    plt.title('Training loss')
+
+    plt.figure()
+    plt.plot(range(len(parameters_norms)), parameters_norms)
+    plt.xlabel('Epochs')
+    plt.title('Parameters norm')
+
+    plt.figure()
+    plt.plot(range(len(gradients_norms)), gradients_norms)
+    plt.xlabel('Epochs')
+    plt.title('Gradients norm')
+    plt.show()
 
 
 def main():
