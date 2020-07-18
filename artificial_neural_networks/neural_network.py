@@ -183,3 +183,11 @@ class NeuralNetwork:
     def gradients(self):
         # Returns the vector of gradients.
         return self._flatten(self._weights_grads, self._biases_grads)
+
+    @property
+    def size(self):
+        # Returns the number of parameters in the network.
+        return sum(
+            map(lambda wb: wb[0].shape[0] * wb[0].shape[1] + wb[1].shape[0],
+                zip(self._weights, self._biases))
+        )
