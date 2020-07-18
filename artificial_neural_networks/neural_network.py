@@ -188,6 +188,17 @@ class NeuralNetwork:
     def size(self):
         # Returns the number of parameters in the network.
         return sum(
-            map(lambda wb: wb[0].shape[0] * wb[0].shape[1] + wb[1].shape[0],
+            map(lambda wb: wb[0].size + wb[1].size,
                 zip(self._weights, self._biases))
         )
+
+    @property
+    def sparsity(self):
+        # Return a value in [0, 1] expressing the portion of parameters which
+        # is 0.
+        eps = 1e-8
+        return sum(
+            map(lambda wb: np.sum(np.abs(wb[0]) <= eps) +
+                           np.sum(np.abs(wb[1]) <= eps),
+                zip(self._weights, self._biases))
+        ) / self.size
