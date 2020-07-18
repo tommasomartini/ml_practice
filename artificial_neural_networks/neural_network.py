@@ -120,6 +120,14 @@ class NeuralNetwork:
 
             # Shape (batch, D{l-1}, D{l}).
             #  (batch, 1, D{l}) x (batch, D{l-1}, 1) = (batch, D{l-1}, D{l})
+            # If we ignore the batch dimension, we are left with 2 vectors of
+            # shape (D{l},) and (D{l-1}). The first one is dL_dZ: one derivative
+            # for each neuron of layer l. The other is dZ_dW.
+            # Each neuron in this layer l has D{l-1} parameters, receiving from
+            # one of the D{l-1} outputs of the previous layer. Therefore each
+            # weight vector for each neuron has a gradient of D{l-1} and since
+            # gradients only depend on the input, all the neurons in this layer
+            # have the same gradient vector: the previous layer's output.
             dL_dW = np.expand_dims(dL_dZ, axis=1) * np.expand_dims(dZ_dW, axis=2)
             gradW = np.mean(dL_dW, axis=0)
             self._weights_grads[layer_idx] = gradW
