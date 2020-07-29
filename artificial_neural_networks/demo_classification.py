@@ -92,6 +92,11 @@ def _draw_prediction(ax, canvas, xsA, xsB):
             logistic = activations.Logistic()
             logistic_prediction = logistic.fw(prediction)
 
+            # Compute the accuracy.
+            binary_prediction = logistic_prediction > 0.5
+            correct_predictions = batch_ys == binary_prediction
+            accuracy = np.mean(correct_predictions)
+
             # Cross Entropy Loss.
             sample_loss = - (batch_ys * np.log(logistic_prediction) +
                              (1 - batch_ys) * np.log(1 - logistic_prediction))
@@ -100,6 +105,7 @@ def _draw_prediction(ax, canvas, xsA, xsB):
             print('Epoch {}, batch {}, loss: {:.3f}'.format(epoch_idx,
                                                             batch_idx,
                                                             training_loss))
+            print('  Accuracy: {:.3f}'.format(accuracy))
 
             dL_dLogOutput = (logistic_prediction - batch_ys) / (logistic_prediction * (1 - logistic_prediction))
             dLogOutput_dOutput = logistic.grad(prediction)
