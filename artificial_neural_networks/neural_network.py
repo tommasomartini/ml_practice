@@ -37,8 +37,8 @@ class NeuralNetwork:
 
     def _reset_state(self):
         # Store the gradients of the parameters.
-        self._weights_grads = [None] * len(self._hidden_layers)
-        self._biases_grads = [None] * len(self._hidden_layers)
+        self._weights_grads = [0.0] * len(self._hidden_layers)
+        self._biases_grads = [0.0] * len(self._hidden_layers)
 
         # Store the intermediate features.
         self._features_before_act = []
@@ -153,12 +153,12 @@ class NeuralNetwork:
             # The input of this layer is the output of the previous one.
             dL_dY = dL_dX
 
-    def _flatten(self, W, b):
+    @staticmethod
+    def _flatten(params):
         flattened = []
-        for layer_idx in range(len(self._hidden_layers)):
-            flatW = np.ravel(W[layer_idx])
-            flatB = np.ravel(b[layer_idx])
-            flattened += [flatW, flatB]
+        for p in params:
+            flat_p = np.ravel(p)
+            flattened += [flat_p]
 
         flattened = np.hstack(flattened)
         return flattened
@@ -168,14 +168,15 @@ class NeuralNetwork:
         start = 0
         for layer_idx in range(len(self._hidden_layers)):
             shape_W = self._weights[layer_idx].shape
-            num_W = shape_W[0] * shape_W[1]
+            num_W = self._weights[layer_idx].size
             params_W = flatW[start: start + num_W]
             params_W = params_W.reshape(shape_W)
             self._weights[layer_idx] = params_W
 
             start += num_W
 
-            num_B = self._biases[layer_idx].shape[0]
+        for layer_idx in range(len(self._hidden_layers)):
+            num_B = self._biases[layer_idx].size
             params_B = flatW[start: start + num_B]
             params_B = params_B.reshape((num_B,))
             self._biases[layer_idx] = params_B
@@ -185,12 +186,19 @@ class NeuralNetwork:
     @property
     def parameters(self):
         # Returns the vector of parameters.
-        return self._flatten(self._weights, self._biases)
+        return np.r_[self._flatten(self._weights),
+                     self._flatten(self._biases)]
+
+    @property
+    def biases(self):
+        # Returns the vector of biases.
+        return self._flatten(self._biases)
 
     @property
     def gradients(self):
         # Returns the vector of gradients.
-        return self._flatten(self._weights_grads, self._biases_grads)
+        return np.r_[self._flatten(self._weights_grads),
+                     self._flatten(self._biases_grads)]
 
     @property
     def size(self):
