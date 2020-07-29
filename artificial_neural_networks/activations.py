@@ -20,7 +20,7 @@ class ReLU:
 
     @staticmethod
     def grad(x):
-        return (x >= 0).astype(float)
+        return (x > 0).astype(float)
 
 
 class LeakyReLU:
@@ -32,7 +32,7 @@ class LeakyReLU:
 
     @staticmethod
     def grad(x):
-        return np.zeros(x.shape) + 1 * (x >= 0) + LeakyReLU.p * (x < 0)
+        return np.zeros(x.shape) + 1 * (x > 0) + LeakyReLU.p * (x <= 0)
 
 
 class Tanh:
