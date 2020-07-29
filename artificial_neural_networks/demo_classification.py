@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
+from matplotlib import cm
 
 import artificial_neural_networks.activations as activations
 import artificial_neural_networks.neural_network as model
@@ -22,19 +23,19 @@ _input_dims = 2
 _output_dims = 1
 
 # The size of each hidden layer.
-_hidden_layers = [10] * 10
+_hidden_layers = [5, 5, 5]
 
 
 def _color(ax, x, ys_hat):
     # Draw the contour regions.
     contourf_res = ax.contourf(x, x, ys_hat,
-                               levels=(0, 0.5, 1),
-                               colors=('b', 'r'),
+                               levels=11,
+                               cmap=cm.get_cmap('RdBu_r'),
                                alpha=0.2)
 
     # Draw the boundary.
     contour_res = ax.contour(x, x, ys_hat,
-                             levels=20,
+                             levels=[0.5],
                              colors=('k',),
                              linestyles=('solid',))
 
@@ -63,10 +64,10 @@ def _draw_prediction(ax, canvas, xsA, xsB):
     nn = model.NeuralNetwork(hidden_layers=_hidden_layers,
                              input_dims=_input_dims,
                              output_dims=_output_dims,
-                             activation=activations.LeakyReLU())
+                             activation=activations.ReLU())
     nn.initialize()
 
-    sgd = optimizers.SGD()
+    sgd = optimizers.Adam()
 
     N = xs.shape[0]
     batch_size = _batch_size if _batch_size > 0 else len(xs)
@@ -145,8 +146,8 @@ def _draw_prediction(ax, canvas, xsA, xsB):
                     canvas.draw()
 
                 training_losses.append(training_loss)
-                parameters_mean_norms.append(np.mean(params))
-                parameters_std_norms.append(np.std(params))
+                parameters_mean_norms.append(np.mean(nn.biases))
+                parameters_std_norms.append(np.std(nn.biases))
                 gradients_mean_norms.append(np.mean(grads))
                 gradients_std_norms.append(np.std(grads))
 
