@@ -106,7 +106,7 @@ def _draw_prediction(ax, canvas, xsA, xsB):
             dL_dOuput = dL_dLogOutput * dLogOutput_dOutput
 
             # Compute the gradients.
-            nn.grad(dL_dOuput)
+            nn.backprop(dL_dOuput)
             grads = nn.gradients
 
             if np.linalg.norm(grads) < 1e-4:

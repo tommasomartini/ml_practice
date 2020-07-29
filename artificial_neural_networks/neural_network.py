@@ -61,7 +61,7 @@ class NeuralNetwork:
         self._features_after_act[-1] = self._features_before_act[-1]
         return self._features_before_act[-1]
 
-    def grad(self, loss_grad):
+    def backprop(self, loss_grad):
         """Performs a backpropagation pass.
 
         Given X in input matrix of shape (N, D), whose N rows are the N

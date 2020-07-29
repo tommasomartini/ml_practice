@@ -77,7 +77,7 @@ def _draw_prediction(ax, xs, ys):
             dL_dOuput = dL_dResiduals * dResiduals_dOutput
 
             # Compute the gradients.
-            nn.grad(dL_dOuput)
+            nn.backprop(dL_dOuput)
             grads = nn.gradients
 
             if np.linalg.norm(grads) < 1e-4:
