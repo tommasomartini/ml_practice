@@ -7,6 +7,7 @@ import artificial_neural_networks.activations as activations
 import artificial_neural_networks.loss_functions as losses
 import artificial_neural_networks.neural_network as model
 import artificial_neural_networks.optimizers as optimizers
+import common.metrics as metrics
 import common.point_drawer as drawer
 
 sns.set()
@@ -25,6 +26,8 @@ _output_dims = 1
 
 # The size of each hidden layer.
 _hidden_layers = [100]
+
+_binary_threshold = 0.5
 
 
 def _color(ax, x, ys_hat):
@@ -102,15 +105,22 @@ def _draw_prediction(ax, canvas, xsA, xsB):
             # Compute the training loss.
             training_loss = loss.fw(label=batch_ys,
                                     prediction=logistic_prediction)
-            print('Epoch {}, batch {}, loss: {:.3f}'.format(epoch_idx,
-                                                            batch_idx,
-                                                            training_loss))
 
-            # Compute the accuracy.
-            binary_prediction = logistic_prediction > 0.5
-            correct_predictions = batch_ys == binary_prediction
-            accuracy = np.mean(correct_predictions)
-            print('  Accuracy: {:.3f}'.format(accuracy))
+            # Compute the accuracy, precision and recall.
+            binary_prediction = logistic_prediction > _binary_threshold
+            accuracy = metrics.compute_accuracy(label=batch_ys,
+                                                prediction=binary_prediction)
+            precision = metrics.compute_precision(label=batch_ys,
+                                                  prediction=binary_prediction)
+            recall = metrics.compute_recall(label=batch_ys,
+                                            prediction=binary_prediction)
+
+            # Print the epoch information.
+            print('Epoch {}, batch {}'.format(epoch_idx, batch_idx))
+            print(' Loss:      {:6.3f}'.format(training_loss))
+            print(' Accuracy:  {:6.3f}'.format(accuracy))
+            print(' Precision: {:6.3f}'.format(precision))
+            print(' Recall:    {:6.3f}'.format(recall))
 
             dL_dLogOutput = loss.grad(label=batch_ys,
                                       prediction=logistic_prediction)
