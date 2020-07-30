@@ -28,11 +28,10 @@ def _lasso(xs, ys, lambd):
 
     dims = xs.shape[1]
 
-    # W = np.zeros((dims, 1))
     W = np.random.randn(dims, 1)
     for iter_idx in range(_n_iters):
-        # loss = np.mean((ys - xs @ W) ** 2)
-        # print('Iter {}, loss={:.3f}'.format(iter_idx, loss))
+        loss = np.mean((ys - xs @ W) ** 2)
+        # print('Iter {}, loss={:6.3f}'.format(iter_idx, loss))
 
         dL_dW = - xs.T @ ys + xs.T @ xs @ W + lambd * W / (np.abs(W) + _EPS)
         W = W - _lr * dL_dW
