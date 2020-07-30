@@ -28,6 +28,8 @@ _output_dims = 1
 _hidden_layers = [100]
 
 _binary_threshold = 0.5
+_vanishing_gradients_threshold = 1e-6
+_update_drawing_every = 10
 
 
 def _color(ax, x, ys_hat):
@@ -122,17 +124,16 @@ def _draw_prediction(ax, canvas, xsA, xsB):
             print(' Precision: {:6.3f}'.format(precision))
             print(' Recall:    {:6.3f}'.format(recall))
 
+            # Compute the gradients.
             dL_dLogOutput = loss.grad(label=batch_ys,
                                       prediction=logistic_prediction)
             dLogOutput_dOutput = logistic.grad(prediction)
             dL_dOuput = dL_dLogOutput * dLogOutput_dOutput
-
-            # Compute the gradients.
             nn.backprop(dL_dOuput)
             grads = nn.gradients
 
-            if np.linalg.norm(grads) < 1e-4:
-                print(' Warning: vanishing gradient: {}'.format(np.linalg.norm(grads)))
+            if np.linalg.norm(grads) < _vanishing_gradients_threshold:
+                print(' ---> Vanishing gradient!')
 
             params = nn.parameters
 
@@ -145,7 +146,7 @@ def _draw_prediction(ax, canvas, xsA, xsB):
             nn.update(new_params)
 
             if batch_idx == 0:
-                if epoch_idx % 10 == 0:
+                if epoch_idx % _update_drawing_every == 0:
                     if contourf_res is not None:
                         for coll in contourf_res.collections:
                             coll.remove()
