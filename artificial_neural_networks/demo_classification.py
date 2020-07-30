@@ -4,6 +4,7 @@ import seaborn as sns
 from matplotlib import cm
 
 import artificial_neural_networks.activations as activations
+import artificial_neural_networks.loss_functions as losses
 import artificial_neural_networks.neural_network as model
 import artificial_neural_networks.optimizers as optimizers
 import common.point_drawer as drawer
@@ -68,6 +69,7 @@ def _draw_prediction(ax, canvas, xsA, xsB):
     nn.initialize()
 
     sgd = optimizers.Adam()
+    loss = losses.BinaryCrossEntropy()
 
     N = xs.shape[0]
     batch_size = _batch_size if _batch_size > 0 else len(xs)
@@ -97,22 +99,21 @@ def _draw_prediction(ax, canvas, xsA, xsB):
             logistic = activations.Logistic()
             logistic_prediction = logistic.fw(prediction)
 
+            # Compute the training loss.
+            training_loss = loss.fw(label=batch_ys,
+                                    prediction=logistic_prediction)
+            print('Epoch {}, batch {}, loss: {:.3f}'.format(epoch_idx,
+                                                            batch_idx,
+                                                            training_loss))
+
             # Compute the accuracy.
             binary_prediction = logistic_prediction > 0.5
             correct_predictions = batch_ys == binary_prediction
             accuracy = np.mean(correct_predictions)
-
-            # Cross Entropy Loss.
-            sample_loss = - (batch_ys * np.log(logistic_prediction) +
-                             (1 - batch_ys) * np.log(1 - logistic_prediction))
-
-            training_loss = np.mean(sample_loss)
-            print('Epoch {}, batch {}, loss: {:.3f}'.format(epoch_idx,
-                                                            batch_idx,
-                                                            training_loss))
             print('  Accuracy: {:.3f}'.format(accuracy))
 
-            dL_dLogOutput = (logistic_prediction - batch_ys) / (logistic_prediction * (1 - logistic_prediction))
+            dL_dLogOutput = loss.grad(label=batch_ys,
+                                      prediction=logistic_prediction)
             dLogOutput_dOutput = logistic.grad(prediction)
             dL_dOuput = dL_dLogOutput * dLogOutput_dOutput
 
