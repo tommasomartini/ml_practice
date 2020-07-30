@@ -195,6 +195,11 @@ class NeuralNetwork:
         return self._flatten(self._biases)
 
     @property
+    def weights(self):
+        # Returns the vector of weights.
+        return self._flatten(self._weights)
+
+    @property
     def gradients(self):
         # Returns the vector of gradients.
         return np.r_[self._flatten(self._weights_grads),
