@@ -2,6 +2,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
 from matplotlib import cm
+from mpl_toolkits.mplot3d import Axes3D
+from sklearn.decomposition import PCA
 
 import artificial_neural_networks.activations as activations
 import artificial_neural_networks.loss_functions as losses
@@ -87,6 +89,7 @@ def _draw_prediction(ax, canvas, xsA, xsB):
     biases_std_norms = []
     gradients_mean_norms = []
     gradients_std_norms = []
+    parameters = []
 
     for epoch_idx in range(_num_epochs):
         all_indices = list(range(N))
@@ -168,6 +171,9 @@ def _draw_prediction(ax, canvas, xsA, xsB):
                 biases_std_norms.append(np.std(nn.biases))
                 gradients_mean_norms.append(np.mean(grads))
                 gradients_std_norms.append(np.std(grads))
+                parameters.append(nn.parameters)
+
+    parameters.append(nn.parameters)
 
     print('{} parameters'.format(nn.size))
 
@@ -215,6 +221,50 @@ def _draw_prediction(ax, canvas, xsA, xsB):
     fig.legend()
 
     fig.tight_layout()  # otherwise the right y-label is slightly clipped
+
+    # Plot the loss landscape.
+    pca = PCA(n_components=2)
+    parameters = np.array(parameters)
+    reduced_params = pca.fit_transform(parameters)
+
+    def _compute_loss(params):
+        nn.update(params)
+        prediction = nn.fw(xs)
+
+        # Use the logistic function to fit the outputs in [0, 1].
+        logistic = activations.Logistic()
+        logistic_prediction = logistic.fw(prediction)
+
+        # Compute the training loss.
+        return loss.fw(label=ys, prediction=logistic_prediction)
+
+    def _unwrap_and_compute_loss(params_2d):
+        params_nD = pca.inverse_transform(params_2d)
+        return _compute_loss(params_nD)
+
+    points_per_axis = 100
+    linsp = np.linspace(-5, 5, points_per_axis)
+    grid_x, grid_y = np.meshgrid(linsp, linsp)
+
+    z_grid = np.array(list(map(_unwrap_and_compute_loss,
+                               np.c_[np.ravel(grid_x), np.ravel(grid_y)])))
+    z_grid = z_grid.reshape((points_per_axis, points_per_axis))
+
+    plt.figure()
+    ax = plt.axes(projection=Axes3D.name)
+    ax.plot_surface(grid_x, grid_y, z_grid,
+                    cmap='viridis', linewidth=0,
+                    antialiased=False, alpha=0.5)
+
+    loss_path = []
+    for params in parameters:
+        loss_path.append(_compute_loss(params))
+
+    ax.plot(reduced_params[:, 0], reduced_params[:, 1], loss_path)
+    ax.scatter(reduced_params[:, 0], reduced_params[:, 1], loss_path,
+               c=loss_path)
+    ax.scatter(reduced_params[0, 0], reduced_params[0, 1], loss_path[0],
+               marker='*')
 
     plt.show()
 
