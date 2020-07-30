@@ -73,16 +73,14 @@ def main():
     fig = plt.figure()
     ax = fig.add_subplot(111)
     ax.set_title('Left-click for red dots,\n'
-                 'Right-click for blue crosses\n'
                  'Enter to predict')
 
     ax.set_xlim([_min_x, _max_x])
     ax.set_ylim([_min_y, _max_y])
 
     red_dots, = ax.plot([], [], linestyle='none', marker='o', color='r')
-    blue_crosses, = ax.plot([], [], linestyle='none', marker='x', color='b')
 
-    drawer.PointDrawer(red_dots, blue_crosses, _draw_prediction)
+    drawer.PointDrawer1D(red_dots, _draw_prediction)
 
     plt.show()
     plt.close()
