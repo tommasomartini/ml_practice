@@ -23,7 +23,7 @@ _input_dims = 2
 _output_dims = 1
 
 # The size of each hidden layer.
-_hidden_layers = [100,]
+_hidden_layers = [100]
 
 
 def _color(ax, x, ys_hat):
@@ -72,11 +72,15 @@ def _draw_prediction(ax, canvas, xsA, xsB):
     N = xs.shape[0]
     batch_size = _batch_size if _batch_size > 0 else len(xs)
     batches_per_epoch = int(np.floor(N / batch_size))
+
     training_losses = []
-    parameters_mean_norms = []
-    parameters_std_norms = []
+    weights_mean_norms = []
+    weights_std_norms = []
+    biases_mean_norms = []
+    biases_std_norms = []
     gradients_mean_norms = []
     gradients_std_norms = []
+
     for epoch_idx in range(_num_epochs):
         all_indices = list(range(N))
         np.random.shuffle(all_indices)
@@ -146,39 +150,12 @@ def _draw_prediction(ax, canvas, xsA, xsB):
                     canvas.draw()
 
                 training_losses.append(training_loss)
-                parameters_mean_norms.append(np.mean(nn.biases))
-                parameters_std_norms.append(np.std(nn.biases))
+                weights_mean_norms.append(np.mean(nn.weights))
+                weights_std_norms.append(np.std(nn.weights))
+                biases_mean_norms.append(np.mean(nn.biases))
+                biases_std_norms.append(np.std(nn.biases))
                 gradients_mean_norms.append(np.mean(grads))
                 gradients_std_norms.append(np.std(grads))
-
-    # # Create a grid.
-    # x = np.linspace(_min_x, _max_x, 101)
-    # x1, x2 = np.meshgrid(x, x)
-    #
-    # # Flatten the coordinates.
-    # zs = np.c_[np.ravel(x1), np.ravel(x2)]
-    # zs_normalized = (zs - mean_xs) / std_xs
-    #
-    # # Predict for every point in the grid.
-    # ys_hat = nn.fw(zs_normalized)
-    #
-    # # Convert to [0, 1] for logistic regression.
-    # ys_hat = activations.Logistic.fw(ys_hat)
-    #
-    # # Reshape back as a grid.
-    # ys_hat = ys_hat.reshape(x1.shape)
-    #
-    # # Draw the contour regions.
-    # ax.contourf(x, x, ys_hat,
-    #             levels=(0, 0.5, 1),
-    #             colors=('b', 'r'),
-    #             alpha=0.2)
-    #
-    # # Draw the boundary.
-    # ax.contour(x, x, ys_hat,
-    #            levels=(0.5,),
-    #            colors=('k',),
-    #            linestyles=('solid',))
 
     print('{} parameters'.format(nn.size))
 
@@ -197,13 +174,21 @@ def _draw_prediction(ax, canvas, xsA, xsB):
     ax1.plot(range(len(training_losses)), training_losses,
              label='Training loss', color='k')
 
-    # Plot the parameters spread.
-    ax2.plot(range(len(parameters_mean_norms)), parameters_mean_norms,
-             label='Parameters',  linestyle=':', color='g')
-    ax2.fill_between(range(len(parameters_mean_norms)),
-                     np.array(parameters_mean_norms) - np.array(parameters_std_norms),
-                     np.array(parameters_mean_norms) + np.array(parameters_std_norms),
-                     color='g', alpha=0.4)
+    # Plot the weights spread.
+    ax2.plot(range(len(weights_mean_norms)), weights_mean_norms,
+             label='Weights',  linestyle=':', color='g')
+    ax2.fill_between(range(len(weights_mean_norms)),
+                     np.array(weights_mean_norms) - np.array(weights_std_norms),
+                     np.array(weights_mean_norms) + np.array(weights_std_norms),
+                     color='g', alpha=0.2)
+
+    # Plot the biases spread.
+    ax2.plot(range(len(biases_mean_norms)), biases_mean_norms,
+             label='Biases', linestyle=':', color='b')
+    ax2.fill_between(range(len(biases_mean_norms)),
+                     np.array(biases_mean_norms) - np.array(biases_std_norms),
+                     np.array(biases_mean_norms) + np.array(biases_std_norms),
+                     color='b', alpha=0.2)
 
     # Plot the gradients spread.
     ax2.plot(range(len(gradients_mean_norms)), gradients_mean_norms,
@@ -213,7 +198,7 @@ def _draw_prediction(ax, canvas, xsA, xsB):
                          gradients_std_norms),
                      np.array(gradients_mean_norms) + np.array(
                          gradients_std_norms),
-                     color='r', alpha=0.4)
+                     color='r', alpha=0.2)
 
     fig.legend()
 
