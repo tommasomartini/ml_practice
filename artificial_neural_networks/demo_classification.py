@@ -68,7 +68,7 @@ def _draw_prediction(ax, canvas, xsA, xsB):
                              activation=activations.ReLU())
     nn.initialize()
 
-    sgd = optimizers.Adam()
+    opt = optimizers.Adam()
     loss = losses.BinaryCrossEntropy()
 
     N = xs.shape[0]
@@ -129,7 +129,7 @@ def _draw_prediction(ax, canvas, xsA, xsB):
             # Apply weight decay.
             grads += _weight_decay * params
 
-            new_params = sgd.update(parameters=params,
+            new_params = opt.update(parameters=params,
                                     gradients=grads,
                                     learning_rate=_learning_rate)
             nn.update(new_params)
