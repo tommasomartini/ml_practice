@@ -14,8 +14,8 @@ np.random.seed(2)
 _min_x = - 5
 _max_x = 5
 
-_learning_rate = 0.01
-_weight_decay = 0.001
+_learning_rate = 0.001
+_weight_decay = 0.0001
 _num_epochs = 1000
 _batch_size = -1
 
@@ -23,13 +23,13 @@ _input_dims = 2
 _output_dims = 1
 
 # The size of each hidden layer.
-_hidden_layers = [5, 5, 5]
+_hidden_layers = [100,]
 
 
 def _color(ax, x, ys_hat):
     # Draw the contour regions.
     contourf_res = ax.contourf(x, x, ys_hat,
-                               levels=11,
+                               levels=10,
                                cmap=cm.get_cmap('RdBu_r'),
                                alpha=0.2)
 
